@@ -4,17 +4,21 @@ use tracing::{info, instrument};
 
 #[derive(Parser)]
 pub struct Args {
-    chain: String,
+    /// Name of the chain to delete
+    #[arg(short, long)]
+    name: String,
 }
 
-#[instrument("update", skip_all)]
+#[instrument("delete", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("starting chain update");
+    info!("Deleting chain {}", args.name);
 
     for i in 0..3 {
-        info!("doing something {i}");
+        info!("Deleting data for the wallet: {i}");
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
     }
 
-    bail!("error updating chain");
+    info!("Chain deleted");
+
+    Ok(())
 }
