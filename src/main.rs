@@ -22,7 +22,9 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Manage chains
     Chain(chain::Args),
+    /// Manage Wallets
     Wallet(wallet::Args),
 }
 
