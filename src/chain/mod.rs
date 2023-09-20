@@ -4,6 +4,7 @@ use tracing::instrument;
 mod create;
 mod list;
 mod delete;
+mod update;
 
 #[derive(Parser)]
 pub struct Args {
@@ -19,6 +20,8 @@ enum Commands {
     List(list::Args),
     /// Delete a chain by name
     Delete(delete::Args),
+    /// Sync a chain to latest point
+    Update(update::Args),
 }
 
 #[instrument("chain", skip_all)]
@@ -27,5 +30,6 @@ pub async fn run(args: Args) -> miette::Result<()> {
         Commands::Create(args) => create::run(args).await,
         Commands::List(args) => list::run(args).await,
         Commands::Delete(args) => delete::run(args).await,
+        Commands::Update(args) => update::run(args).await,
     }
 }

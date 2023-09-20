@@ -1,5 +1,4 @@
 use clap::{Parser, ValueEnum};
-use miette::bail;
 use serde::Serialize;
 use tracing::{info, instrument};
 

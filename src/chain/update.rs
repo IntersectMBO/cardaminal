@@ -8,16 +8,16 @@ pub struct Args {
     name: String,
 }
 
-#[instrument("delete", skip_all)]
+#[instrument("update", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("Deleting chain {}", args.name);
+    info!("Updating chain {}", args.name);
 
     for i in 0..3 {
-        info!("Deleting data for the wallet: {i}");
+        info!("Chain update {i}");
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
     }
 
-    info!("Chain deleted");
+    info!("Chain updated");
 
     Ok(())
 }
