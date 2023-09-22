@@ -5,7 +5,7 @@ use tracing::{info, instrument};
 pub struct Args {
     /// Name of the chain to delete
     name: String,
-    ///
+    /// automatically detached the wallets that are attached to this chain if any
     #[arg(long, default_value_t)]
     detached: bool,
 }
