@@ -4,10 +4,8 @@ use tracing::{info, instrument};
 #[derive(Parser)]
 pub struct Args {
     /// Wallet name to get history
-    #[arg(short, long)]
     wallet: String,
     /// Chain name to get history
-    #[arg(short, long)]
     chain: String,
 }
 

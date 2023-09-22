@@ -16,7 +16,7 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    #[arg(short, long)]
+    #[arg(short, long, global = true)]
     config: Option<PathBuf>,
 }
 

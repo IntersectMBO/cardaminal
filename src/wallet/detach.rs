@@ -4,10 +4,8 @@ use tracing::{info, instrument};
 #[derive(Parser)]
 pub struct Args {
     /// Wallet name to detach
-    #[arg(short, long)]
     wallet: String,
     /// Chain name to detach
-    #[arg(short, long)]
     chain: String,
 }
 

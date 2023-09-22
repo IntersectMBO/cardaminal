@@ -4,10 +4,8 @@ use tracing::{info, instrument};
 #[derive(Parser)]
 pub struct Args {
     /// Wallet name to attach
-    #[arg(short, long)]
     wallet: String,
     /// Chain name to attach
-    #[arg(short, long)]
     chain: String,
 }
 

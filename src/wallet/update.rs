@@ -4,7 +4,6 @@ use tracing::{info, instrument};
 #[derive(Parser)]
 pub struct Args {
     /// Wallet name to history update
-    #[arg(short, long)]
     wallet: String,
 }
 

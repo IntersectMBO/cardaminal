@@ -3,8 +3,7 @@ use tracing::{info, instrument};
 
 #[derive(Parser)]
 pub struct Args {
-    /// Name of the chain to delete
-    #[arg(short, long)]
+    /// Name of the chain to update
     name: String,
 }
 

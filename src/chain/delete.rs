@@ -4,13 +4,15 @@ use tracing::{info, instrument};
 #[derive(Parser)]
 pub struct Args {
     /// Name of the chain to delete
-    #[arg(short, long)]
     name: String,
+    ///
+    #[arg(long, default_value_t)]
+    detached: bool,
 }
 
 #[instrument("delete", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("Deleting chain {}", args.name);
+    info!("Deleting chain {}, {}", args.name, args.detached);
 
     for i in 0..3 {
         info!("Deleting data for the wallet: {i}");

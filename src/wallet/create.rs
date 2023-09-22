@@ -4,7 +4,6 @@ use tracing::{info, instrument};
 #[derive(Parser)]
 pub struct Args {
     /// Wallet name
-    #[arg(short, long)]
     name: String,
 }
 
