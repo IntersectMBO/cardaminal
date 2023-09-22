@@ -2,10 +2,12 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum Error {
-    #[error("Error to connect the source {0}")]
+    #[error("{0}")]
     SourceConnection(String),
-    #[error("Error to chain sync {0}")]
+    #[error("{0}")]
     SourceChainsync(String),
+    #[error("{0}")]
+    SourceDecode(String),
 }
 
 impl From<pallas::network::facades::Error> for Error {
@@ -17,5 +19,11 @@ impl From<pallas::network::facades::Error> for Error {
 impl From<pallas::network::miniprotocols::chainsync::ClientError> for Error {
     fn from(value: pallas::network::miniprotocols::chainsync::ClientError) -> Self {
         Error::SourceChainsync(value.to_string())
+    }
+}
+
+impl From<pallas::ledger::traverse::Error> for Error {
+    fn from(value: pallas::ledger::traverse::Error) -> Self {
+        Error::SourceDecode(value.to_string())
     }
 }

@@ -2,8 +2,8 @@ use clap::{Parser, Subcommand};
 use tracing::instrument;
 
 mod create;
-mod list;
 mod delete;
+mod list;
 mod update;
 
 #[derive(Parser)]
