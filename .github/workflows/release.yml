@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: cardaminal-${{ matrix.release_for }}
-          path: target/${{ matrix.target }}/release/${{ matrix.bin }}
+          path: release/cardaminal-${{matrix.target}}/${{ matrix.bin }}
 
   github_release:
     needs: [build]
@@ -92,6 +92,6 @@ jobs:
       - name: Build | Publish
         uses: softprops/action-gh-release@v1
         with:
-          files: cardaminal/cardaminal-*
+          files: release/cardaminal-*/cardaminal-*
           body_path: RELEASE.md
           draft: true
