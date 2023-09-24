@@ -8,6 +8,7 @@ Our CLI requires certain configuration data about each chain it connects to. We 
 
 We anticipate that the following chain-specific data will be required to fulfill the scope of the CLI:
 
+- version: an identifier of the config schema version for backward compatibility
 - name: a descriptive name given by the user for later identification.
 - upstream: the network address of a trusted node that can be used to interact with the network via n2n protocols.
 - magic: the network magic of the chain required for the handshaking procedure.
