@@ -1,7 +1,6 @@
 name: Release
 
 on:
-  workflow_dispatch: {}
   push:
     tags:
       - "v*"
@@ -85,11 +84,6 @@ jobs:
       - name: Setup | Artifacts
         uses: actions/download-artifact@v3
 
-      - name: Setup | Checksums
-        run:
-          for file in cardaminal-*/cardaminal-*; do openssl dgst -sha256 -r
-          "$file" | awk '{print $1}' > "${file}.sha256"; done
-
       - name: Setup | Release notes
         run: |
           go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.0
@@ -98,6 +92,6 @@ jobs:
       - name: Build | Publish
         uses: softprops/action-gh-release@v1
         with:
-          files: cardaminal-*/cardaminal-*
+          files: cardaminal-*
           body_path: RELEASE.md
           draft: true
