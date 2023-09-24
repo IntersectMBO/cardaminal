@@ -93,6 +93,6 @@ jobs:
       - name: Build | Publish
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{steps.download.outputs.download-path}}/cardaminal-*/cardaminal-*
+          files: ${{steps.download.outputs.download-path}}/**/*
           body_path: RELEASE.md
           draft: true
