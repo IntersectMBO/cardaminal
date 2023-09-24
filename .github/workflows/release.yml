@@ -3,8 +3,10 @@ name: Release
 on:
   workflow_dispatch: {}
   push:
-    tags:
-      - "v*"
+    # tags:
+    #   - "v*"
+    branches:
+      - 12-setup-release-workflow-using-github-actions
 
 jobs:
   build:
