@@ -92,6 +92,6 @@ jobs:
       - name: Build | Publish
         uses: softprops/action-gh-release@v1
         with:
-          files: cardaminal-*
+          files: cardaminal/cardaminal-*
           body_path: RELEASE.md
           draft: true
