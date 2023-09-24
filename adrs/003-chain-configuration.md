@@ -1,4 +1,4 @@
-# Configuration Data
+# Chain Configuration
 
 ## Context
 
