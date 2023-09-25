@@ -9,6 +9,6 @@ pub struct Args {
 
 #[instrument("detach", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("Wallet {} detached", args.wallet);
+    info!(wallet = args.wallet, "detached");
     Ok(())
 }

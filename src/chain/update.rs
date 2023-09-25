@@ -9,14 +9,14 @@ pub struct Args {
 
 #[instrument("update", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("Updating chain {}", args.name);
+    info!(chain = args.name, "updating");
 
     for i in 0..3 {
-        info!("Chain update {i}");
+        info!(slot = i, "update");
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
     }
 
-    info!("Chain updated");
+    info!("chain updated");
 
     Ok(())
 }

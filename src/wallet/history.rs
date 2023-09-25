@@ -10,7 +10,7 @@ pub struct Args {
 #[instrument("history", skip_all)]
 pub async fn run(_args: Args) -> miette::Result<()> {
     for i in 0..3 {
-        info!("Transaction {i}");
+        info!(transaction = i, "update");
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
     }
 

@@ -12,14 +12,14 @@ pub struct Args {
 
 #[instrument("delete", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("Deleting chain {}, {}", args.name, args.detached);
+    info!(chain = args.name, "deleting");
 
     for i in 0..3 {
-        info!("Deleting data for the wallet: {i}");
+        info!(wallet = i, "detached");
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
     }
 
-    info!("Chain deleted");
+    info!("chain deleted");
 
     Ok(())
 }

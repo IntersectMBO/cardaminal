@@ -12,6 +12,6 @@ pub struct Args {
 #[instrument("create", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
     // TODO: check all parameters available
-    info!("Transferred {} to {}", args.value, args.address);
+    info!(address = args.address, value = args.value, "transferred");
     Ok(())
 }

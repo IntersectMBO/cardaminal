@@ -11,6 +11,6 @@ pub struct Args {
 
 #[instrument("attach", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("Wallet {} attached to {} chain", args.wallet, args.chain);
+    info!(wallet = args.wallet, chain = args.chain, "attached",);
     Ok(())
 }

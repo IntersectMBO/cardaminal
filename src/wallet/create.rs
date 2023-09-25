@@ -9,6 +9,6 @@ pub struct Args {
 
 #[instrument("create", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("Wallet {} created", args.name);
+    info!(wallet = args.name, "created");
     Ok(())
 }

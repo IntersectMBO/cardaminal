@@ -9,12 +9,14 @@ pub struct Args {
 
 #[instrument("update", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("starting wallet {} update", args.wallet);
+    info!(wallet = args.wallet, "updating");
 
     for i in 0..3 {
-        info!("doing something {i}");
+        info!(transaction = i, "update");
         tokio::time::sleep(std::time::Duration::from_secs(3)).await;
     }
+
+    info!("wallet updated");
 
     Ok(())
 }
