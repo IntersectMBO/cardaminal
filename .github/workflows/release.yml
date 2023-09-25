@@ -43,15 +43,12 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: checkout repository
+        uses: actions/checkout@v3
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Build binary
+      - name: build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
           command: both
@@ -59,11 +56,15 @@ jobs:
           args: ${{ matrix.args }}
           strip: true
 
+      - name: rename binaries
+        run: |
+          mv target/${{ matrix.target }}/release/${{ matrix.bin }} ${{ matrix.release_for }}-${{ matrix.bin }}
+
       - name: upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: cardaminal-${{ matrix.release_for }}
-          path: target/${{ matrix.target }}/release/${{ matrix.bin }}
+          name: binary-${{ matrix.release_for }}
+          path: ${{ matrix.release_for }}-${{ matrix.bin }}
 
   github_release:
     needs: [build]
@@ -71,28 +72,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Setup | Checkout
+      - name: checkout
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Setup | Go
+      - name: setup go
         uses: actions/setup-go@v4
         with:
           go-version: "1.16"
 
-      - name: Setup | Artifacts
+      - name: download artifacts
         id: "download"
         uses: actions/download-artifact@v3
 
-      - name: Setup | Release notes
+      - name: set release notes
         run: |
           go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.0
           git-chglog -c .github/chglog/release.yml $(git describe --tags) > RELEASE.md
 
-      - name: Build | Publish
+      - name: create release
         uses: softprops/action-gh-release@v1
         with:
-          files: ${{steps.download.outputs.download-path}}/**/*
+          files: binary-*/*
           body_path: RELEASE.md
           draft: true
