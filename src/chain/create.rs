@@ -1,8 +1,7 @@
 use clap::Parser;
-use serde::Serialize;
 use tracing::{info, instrument};
 
-#[derive(Parser, Serialize)]
+#[derive(Parser)]
 pub struct Args {
     /// Name of the new chain
     #[arg(short, long, env = "CARDAMINAL_CHAIN_NAME")]
@@ -13,10 +12,7 @@ pub struct Args {
 }
 
 #[instrument("update", skip_all)]
-pub async fn run(args: Args) -> miette::Result<()> {
-    info!(
-        "Chain created \n{}",
-        serde_json::to_string_pretty(&args).unwrap()
-    );
+pub async fn run(_args: Args) -> miette::Result<()> {
+    info!("chain created");
     Ok(())
 }
