@@ -1,23 +1,14 @@
-use clap::{Parser, ValueEnum};
+use clap::Parser;
 use serde::Serialize;
 use tracing::{info, instrument};
-
-#[derive(ValueEnum, Clone, Serialize)]
-pub enum Kind {
-    N2N,
-    N2C,
-}
 
 #[derive(Parser, Serialize)]
 pub struct Args {
     /// Name of the new chain
-    #[arg(short, long)]
+    #[arg(short, long, env = "CARDAMINAL_CHAIN_NAME")]
     name: String,
-    /// Chain connection type
-    #[arg(short, long)]
-    kind: Kind,
-    /// Chain connection string
-    #[arg(short, long)]
+    /// Chain N2N connection string
+    #[arg(short, long, env = "CARDAMINAL_CHAIN_SOURCE")]
     source: String,
 }
 
