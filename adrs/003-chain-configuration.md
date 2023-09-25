@@ -18,8 +18,8 @@ We'll be storing the config data on the filesystem of the user. Each chain will 
 
 For example, for a chain named `mainnet`, we'll store it's config in:
 
-```
-~/.cardaminal/mainnet/config.toml
+```sh
+${CARDAMINAL_ROOT_DIR}/chains/mainnet/config.toml
 ```
 
 The content of the config file will use `TOML` format and the schema is to be inferred from the following example:
