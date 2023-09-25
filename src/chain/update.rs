@@ -23,7 +23,7 @@ pub async fn run(args: Args) -> miette::Result<()> {
     let mut slot = 0;
     let slot_tip = 500;
 
-    let header_span = info_span!("header");
+    let header_span = info_span!("chain-update");
     header_span.pb_set_style(&ProgressStyle::default_bar());
     header_span.pb_set_length(slot_tip);
 
