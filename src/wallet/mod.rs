@@ -5,7 +5,6 @@ mod attach;
 mod create;
 mod detach;
 mod history;
-mod transaction;
 mod update;
 
 #[derive(Parser)]
@@ -21,7 +20,6 @@ enum Commands {
     Attach(attach::Args),
     Detach(detach::Args),
     History(history::Args),
-    Transaction(transaction::Args),
 }
 
 #[instrument("wallet", skip_all)]
@@ -32,6 +30,5 @@ pub async fn run(args: Args) -> miette::Result<()> {
         Commands::Attach(args) => attach::run(args).await,
         Commands::Detach(args) => detach::run(args).await,
         Commands::History(args) => history::run(args).await,
-        Commands::Transaction(args) => transaction::run(args).await,
     }
 }

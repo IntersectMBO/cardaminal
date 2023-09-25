@@ -5,6 +5,7 @@ use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::prelude::*;
 
 pub mod chain;
+pub mod transaction;
 pub mod wallet;
 
 pub struct Context {}
@@ -26,6 +27,8 @@ enum Commands {
     Chain(chain::Args),
     /// Manage Wallets
     Wallet(wallet::Args),
+    /// Manage Transactions
+    Transaction(transaction::Args),
 }
 
 #[tokio::main]
@@ -51,8 +54,8 @@ async fn main() -> miette::Result<()> {
         }
         Commands::Wallet(args) => {
             //let ctx = Context::load(cli.config, None, None).into_diagnostic()?;
-
             wallet::run(args).await
         }
+        Commands::Transaction(args) => transaction::run(args).await,
     }
 }
