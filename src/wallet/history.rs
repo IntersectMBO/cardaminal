@@ -5,8 +5,6 @@ use tracing::{info, instrument};
 pub struct Args {
     /// Wallet name to get history
     wallet: String,
-    /// Chain name to get history
-    chain: String,
 }
 
 #[instrument("history", skip_all)]
