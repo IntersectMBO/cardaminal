@@ -1,7 +1,7 @@
-use std::{fmt::Write, thread, time::Duration};
+use std::{thread, time::Duration};
 
 use clap::Parser;
-use indicatif::{ProgressState, ProgressStyle};
+use indicatif::ProgressStyle;
 use tracing::{info, info_span, instrument, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
