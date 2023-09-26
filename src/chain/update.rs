@@ -1,59 +1,48 @@
-use clap::Parser;
-use pallas::{ledger::traverse::MultiEraHeader, network::miniprotocols::chainsync::NextResponse};
-use tracing::{info, instrument};
+use std::{thread, time::Duration};
 
-use crate::sources::n2n::bootstrap;
+use clap::Parser;
+use indicatif::ProgressStyle;
+use tracing::{info, info_span, instrument, Span};
+use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 #[derive(Parser)]
 pub struct Args {
-    /// Name of the chain to sync
-    #[arg(short, long)]
+    /// Name of the chain to update
     name: String,
 }
 
-#[instrument("update", skip_all)]
+#[instrument("update", skip_all, fields(name=args.name))]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!("Updating chain {}", args.name);
+    info!(chain = args.name, "updating");
 
-    //TODO: get chain config from sqlite
-    //TODO: validate errors
+    let mut slot = 0;
+    let slot_tip = 500;
 
-    let mut peer_client = bootstrap(
-        "relaysnew.cardano-mainnet.iohk.io:3001",
-        &764824073,
-        crate::sources::IntersectConfig::Origin,
-    )
-    .await
-    .unwrap();
+    let span = info_span!("chain-update");
+    span.pb_set_style(&ProgressStyle::default_bar());
+    span.pb_set_length(slot_tip);
 
-    let chainsync = peer_client.chainsync();
+    span.pb_set_style(
+        &ProgressStyle::with_template(
+            "{spinner:.white} [{elapsed_precise}] [{wide_bar:.white/white}] {pos}/{len}",
+        )
+        .unwrap(),
+    );
 
-    while chainsync.has_agency() {
-        let response = chainsync.request_next().await.unwrap();
+    let span_enter = span.enter();
 
-        match response {
-            NextResponse::RollForward(header, _) => {
-                let header = match header.byron_prefix {
-                    Some((subtag, _)) => {
-                        MultiEraHeader::decode(header.variant, Some(subtag), &header.cbor)
-                    }
-                    None => MultiEraHeader::decode(header.variant, None, &header.cbor),
-                }
-                .unwrap();
+    while slot < slot_tip {
+        slot += 1;
 
-                let slot = header.slot();
-                let hash = header.hash();
-
-                info!("chain sync roll forward slot={} hash={}", slot, hash);
-            }
-            NextResponse::RollBackward(point, _) => {
-                info!("chain sync roll backward slot={}", point.slot_or_default());
-            }
-            NextResponse::Await => break,
-        }
+        info!(last_slot = slot, "new blocks downloaded");
+        thread::sleep(Duration::from_millis(500));
+        Span::current().pb_inc(1);
     }
 
-    info!("Chain updated");
+    std::mem::drop(span_enter);
+    std::mem::drop(span);
+
+    info!("chain updated");
 
     Ok(())
 }

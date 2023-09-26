@@ -1,31 +1,31 @@
-use clap::{Parser, ValueEnum};
-use serde::Serialize;
+use clap::Parser;
 use tracing::{info, instrument};
 
-#[derive(ValueEnum, Clone, Serialize)]
-pub enum Kind {
-    N2N,
-    N2C,
-}
-
-#[derive(Parser, Serialize)]
+#[derive(Parser)]
 pub struct Args {
-    /// Name of the new chain
-    #[arg(short, long)]
+    /// friendly name to identify the chain
     name: String,
-    /// Chain connection type
+
+    /// [host]:[port] of the upstream node
     #[arg(short, long)]
-    kind: Kind,
-    /// Chain connection string
+    upstream: Option<String>,
+
+    /// network magic of the chain
     #[arg(short, long)]
-    source: String,
+    magic: Option<String>,
+
+    /// [slot],[hash] of the sync start point
+    #[arg(short, long)]
+    after: Option<String>,
 }
 
-#[instrument("update", skip_all)]
+#[instrument("create", skip_all, fields(name=args.name))]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!(
-        "Chain created \n{}",
-        serde_json::to_string_pretty(&args).unwrap()
-    );
+    info!("creating chain");
+
+    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+
+    info!("chain created");
+
     Ok(())
 }

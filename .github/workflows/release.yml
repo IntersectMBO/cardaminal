@@ -1,0 +1,99 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    continue-on-error: true
+
+    strategy:
+      matrix:
+        include:
+          - release_for: Linux-GNU-x86_64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            arch: amd64
+            args: "--locked --release"
+            bin: cardaminal
+
+          - release_for: Linux-GNU-armv7
+            os: ubuntu-latest
+            target: "armv7-unknown-linux-gnueabihf"
+            arch: arm64
+            args: "--locked --release"
+            bin: cardaminal
+
+          - release_for: Windows-x86_64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            arch: amd64
+            args: "--locked --release"
+            bin: cardaminal.exe
+
+          - release_for: macOS-x86_64
+            os: macOS-latest
+            target: x86_64-apple-darwin
+            arch: amd64
+            args: "--locked --release"
+            bin: cardaminal
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v3
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: build binary
+        uses: houseabsolute/actions-rust-cross@v0
+        with:
+          command: both
+          target: ${{ matrix.target }}
+          args: ${{ matrix.args }}
+          strip: true
+
+      - name: rename binaries
+        run: |
+          mv target/${{ matrix.target }}/release/${{ matrix.bin }} ${{ matrix.release_for }}-${{ matrix.bin }}
+
+      - name: upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: binary-${{ matrix.release_for }}
+          path: ${{ matrix.release_for }}-${{ matrix.bin }}
+
+  github_release:
+    needs: [build]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: setup go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.16"
+
+      - name: download artifacts
+        id: "download"
+        uses: actions/download-artifact@v3
+
+      - name: set release notes
+        run: |
+          go install github.com/git-chglog/git-chglog/cmd/git-chglog@v0.15.0
+          git-chglog -c .github/chglog/release.yml $(git describe --tags) > RELEASE.md
+
+      - name: create release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: binary-*/*
+          body_path: RELEASE.md
+          draft: true
