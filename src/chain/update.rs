@@ -11,7 +11,7 @@ pub struct Args {
     name: String,
 }
 
-#[instrument("update", skip_all)]
+#[instrument("update", skip_all, fields(name=args.name))]
 pub async fn run(args: Args) -> miette::Result<()> {
     info!(chain = args.name, "updating");
 
@@ -34,7 +34,8 @@ pub async fn run(args: Args) -> miette::Result<()> {
     while slot < slot_tip {
         slot += 1;
 
-        thread::sleep(Duration::from_millis(12));
+        info!(last_slot = slot, "new blocks downloaded");
+        thread::sleep(Duration::from_millis(500));
         Span::current().pb_inc(1);
     }
 
