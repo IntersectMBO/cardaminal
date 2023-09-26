@@ -19,8 +19,8 @@ The command line will be divided into multiple subcommands:
   - `update`: update wallet state from chain
   - `attach`: attach existing wallet to chain
   - `detach`: detach existing wallet from chain
-  - `show`: show wallet history
-  - `list`: list current utxos of a wallet
+  - `history`: show wallet history
+  - `utxos`: list current utxos of a wallet
 - `transaction`: to build, edit, sign and submit transactions
   - `build`: build a new transaction
   - `edit`: edit existing transaction
