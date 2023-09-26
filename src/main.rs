@@ -17,8 +17,14 @@ struct Cli {
     #[command(subcommand)]
     command: Commands,
 
-    #[arg(short, long, global = true)]
-    config: Option<PathBuf>,
+    #[arg(
+        short,
+        long,
+        global = true,
+        help = "root dir for config and data",
+        env = "CARDAMINAL_ROOT_DIR"
+    )]
+    root_dir: Option<PathBuf>,
 }
 
 #[derive(Subcommand)]
@@ -31,17 +37,19 @@ enum Commands {
     Transaction(transaction::Args),
 }
 
-#[tokio::main]
-async fn main() -> miette::Result<()> {
+pub fn with_tracing() {
     let indicatif_layer = IndicatifLayer::new();
 
     tracing_subscriber::registry()
-        //.with(tracing_subscriber::filter::LevelFilter::INFO)
+        .with(tracing_subscriber::filter::LevelFilter::INFO)
         .with(tracing_subscriber::filter::Targets::default().with_target("cardaminal", Level::INFO))
         .with(tracing_subscriber::fmt::layer().with_writer(indicatif_layer.get_stderr_writer()))
         .with(indicatif_layer)
         .init();
+}
 
+#[tokio::main]
+async fn main() -> miette::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {

@@ -3,16 +3,29 @@ use tracing::{info, instrument};
 
 #[derive(Parser)]
 pub struct Args {
-    /// Name of the new chain
-    #[arg(short, long, env = "CARDAMINAL_CHAIN_NAME")]
+    /// friendly name to identify the chain
     name: String,
-    /// Chain N2N connection string
-    #[arg(short, long, env = "CARDAMINAL_CHAIN_SOURCE")]
-    source: String,
+
+    /// [host]:[port] of the upstream node
+    #[arg(short, long)]
+    upstream: Option<String>,
+
+    /// network magic of the chain
+    #[arg(short, long)]
+    magic: Option<String>,
+
+    /// [slot],[hash] of the sync start point
+    #[arg(short, long)]
+    after: Option<String>,
 }
 
-#[instrument("update", skip_all)]
-pub async fn run(_args: Args) -> miette::Result<()> {
+#[instrument("create", skip_all, fields(name=args.name))]
+pub async fn run(args: Args) -> miette::Result<()> {
+    info!("creating chain");
+
+    tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+
     info!("chain created");
+
     Ok(())
 }

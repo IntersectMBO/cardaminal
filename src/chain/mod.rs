@@ -2,8 +2,8 @@ use clap::{Parser, Subcommand};
 use tracing::instrument;
 
 mod create;
-mod list;
 mod delete;
+mod list;
 mod update;
 
 #[derive(Parser)]
@@ -27,9 +27,18 @@ enum Commands {
 #[instrument("chain", skip_all)]
 pub async fn run(args: Args) -> miette::Result<()> {
     match args.command {
-        Commands::Create(args) => create::run(args).await,
+        Commands::Create(args) => {
+            crate::with_tracing();
+            create::run(args).await
+        }
         Commands::List(args) => list::run(args).await,
-        Commands::Delete(args) => delete::run(args).await,
-        Commands::Update(args) => update::run(args).await,
+        Commands::Delete(args) => {
+            crate::with_tracing();
+            delete::run(args).await
+        }
+        Commands::Update(args) => {
+            crate::with_tracing();
+            update::run(args).await
+        }
     }
 }

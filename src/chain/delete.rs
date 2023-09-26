@@ -3,16 +3,17 @@ use tracing::{info, instrument};
 
 #[derive(Parser)]
 pub struct Args {
-    /// Name of the chain to delete
+    /// name of the chain to delete
     name: String,
-    /// automatically detached the wallets that are attached to this chain if any
+
+    /// automatically detach any wallets using this chain
     #[arg(long, default_value_t)]
-    detached: bool,
+    detach: bool,
 }
 
-#[instrument("delete", skip_all)]
+#[instrument("delete", skip_all, fields(name=args.name))]
 pub async fn run(args: Args) -> miette::Result<()> {
-    info!(chain = args.name, "deleting");
+    info!("deleting");
 
     for i in 0..3 {
         info!(wallet = i, "detached");
