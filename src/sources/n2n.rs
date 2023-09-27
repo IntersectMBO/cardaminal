@@ -8,7 +8,7 @@ pub async fn bootstrap(
     magic: &u64,
     intersect: IntersectConfig,
 ) -> miette::Result<PeerClient> {
-    let mut peer_client = PeerClient::connect(peer_address, magic.clone())
+    let mut peer_client = PeerClient::connect(peer_address, *magic)
         .await
         .into_diagnostic()?;
 
