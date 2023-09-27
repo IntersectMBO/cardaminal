@@ -1,9 +1,14 @@
-use std::{thread, time::Duration};
-
 use clap::Parser;
 use indicatif::ProgressStyle;
-use tracing::{info, info_span, instrument, Span};
+use miette::IntoDiagnostic;
+use pallas::{
+    ledger::traverse::MultiEraHeader,
+    network::miniprotocols::{chainsync::NextResponse, Point},
+};
+use tracing::{info, info_span, instrument};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
+
+use crate::sources::n2n::bootstrap;
 
 #[derive(Parser)]
 pub struct Args {
@@ -15,8 +20,24 @@ pub struct Args {
 pub async fn run(args: Args) -> miette::Result<()> {
     info!(chain = args.name, "updating");
 
-    let mut slot = 0;
-    let slot_tip = 500;
+    //TODO: load chain config file to get peer address, magic and intersect point
+
+    let mut peer_client = bootstrap(
+        "relays-new.cardano-mainnet.iohk.io:3001",
+        &764824073,
+        crate::sources::IntersectConfig::Origin,
+    )
+    .await?;
+
+    let chainsync = peer_client.chainsync();
+
+    let (_, tip) = chainsync
+        .find_intersect(vec![Point::Origin])
+        .await
+        .into_diagnostic()?;
+
+    let mut slot: u64 = 0;
+    let slot_tip = tip.0.slot_or_default();
 
     let span = info_span!("chain-update");
     span.pb_set_style(&ProgressStyle::default_bar());
@@ -32,11 +53,35 @@ pub async fn run(args: Args) -> miette::Result<()> {
     let span_enter = span.enter();
 
     while slot < slot_tip {
-        slot += 1;
+        let response = chainsync.request_next().await.into_diagnostic()?;
 
-        info!(last_slot = slot, "new blocks downloaded");
-        thread::sleep(Duration::from_millis(500));
-        Span::current().pb_inc(1);
+        match response {
+            NextResponse::RollForward(header, _) => {
+                let header = match header.byron_prefix {
+                    Some((subtag, _)) => {
+                        MultiEraHeader::decode(header.variant, Some(subtag), &header.cbor)
+                    }
+                    None => MultiEraHeader::decode(header.variant, None, &header.cbor),
+                }
+                .into_diagnostic()?;
+
+                slot = header.slot();
+
+                //TODO: open content and save in db
+
+                span.pb_set_position(slot);
+                info!(last_slot = slot, "new blocks downloaded");
+            }
+            NextResponse::RollBackward(point, _) => {
+                //TODO: validate rollback
+
+                slot = point.slot_or_default();
+                span.pb_set_position(slot);
+            }
+            NextResponse::Await => {
+                break;
+            }
+        };
     }
 
     std::mem::drop(span_enter);
