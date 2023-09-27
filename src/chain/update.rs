@@ -8,7 +8,7 @@ use pallas::{
 use tracing::{info, info_span, instrument};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
-use crate::sources::n2n::bootstrap;
+use crate::chain::sources::{n2n::bootstrap, IntersectConfig};
 
 #[derive(Parser)]
 pub struct Args {
@@ -25,7 +25,7 @@ pub async fn run(args: Args) -> miette::Result<()> {
     let mut peer_client = bootstrap(
         "relays-new.cardano-mainnet.iohk.io:3001",
         &764824073,
-        crate::sources::IntersectConfig::Origin,
+        IntersectConfig::Origin,
     )
     .await?;
 

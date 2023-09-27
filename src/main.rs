@@ -5,7 +5,6 @@ use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::prelude::*;
 
 pub mod chain;
-pub mod sources;
 pub mod transaction;
 pub mod wallet;
 
