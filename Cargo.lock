@@ -233,7 +233,6 @@ dependencies = [
  "pallas",
  "serde",
  "serde_json",
- "thiserror",
  "tokio",
  "tracing",
  "tracing-indicatif",
