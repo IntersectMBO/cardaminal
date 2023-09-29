@@ -5,6 +5,7 @@ mod create;
 mod delete;
 mod list;
 mod update;
+mod config;
 
 #[derive(Parser)]
 pub struct Args {
