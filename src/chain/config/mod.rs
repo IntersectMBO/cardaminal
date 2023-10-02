@@ -16,21 +16,29 @@ pub struct Chain {
     created_on: DateTime<Local>,
 }
 impl Chain {
-    pub fn new(name: String, magic: String, upstream: Vec<ChainUpstream>) -> Self {
+    pub fn try_new(
+        name: String,
+        magic: String,
+        upstream: Vec<ChainUpstream>,
+        after: Option<String>,
+    ) -> miette::Result<Self> {
+        // TODO: Get cli version
         let version = String::from("v1alpha");
 
-        Self {
+        let mut chain = Self {
             version,
-            name: name.clone(),
+            name,
             upstream,
-            magic: magic.clone(),
+            magic,
             after: None,
             created_on: Local::now(),
-        }
-    }
+        };
 
-    pub fn set_after(&mut self, after: ChainAfter) {
-        self.after = Some(after);
+        if let Some(after) = after {
+            chain.after = Some(after.try_into()?);
+        }
+
+        Ok(chain)
     }
 }
 impl TryFrom<&Args> for Chain {
@@ -38,17 +46,12 @@ impl TryFrom<&Args> for Chain {
 
     fn try_from(value: &Args) -> Result<Self, Self::Error> {
         let chain_upstream = ChainUpstream::new(value.upstream.clone());
-        let mut chain = Self::new(
+        Ok(Self::try_new(
             value.name.clone(),
             value.magic.clone(),
             vec![chain_upstream],
-        );
-
-        if let Some(after) = &value.after {
-            chain.set_after(after.try_into()?)
-        }
-
-        Ok(chain)
+            value.after.clone(),
+        )?)
     }
 }
 
@@ -72,10 +75,10 @@ impl ChainAfter {
         Self { slot, hash }
     }
 }
-impl TryFrom<&String> for ChainAfter {
+impl TryFrom<String> for ChainAfter {
     type Error = miette::ErrReport;
 
-    fn try_from(value: &String) -> Result<Self, Self::Error> {
+    fn try_from(value: String) -> Result<Self, Self::Error> {
         let parts = value.split(",").collect::<Vec<&str>>();
 
         if parts.len() != 2 {
