@@ -5,6 +5,7 @@ mod config;
 mod create;
 mod delete;
 mod list;
+mod sources;
 mod update;
 
 #[derive(Parser)]
