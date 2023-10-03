@@ -4,11 +4,10 @@ use tracing::Level;
 use tracing_indicatif::IndicatifLayer;
 use tracing_subscriber::prelude::*;
 
-pub mod chain;
-pub mod transaction;
-pub mod wallet;
-
-pub struct Context {}
+mod chain;
+mod dirs;
+mod transaction;
+mod wallet;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -37,6 +36,17 @@ enum Commands {
     Transaction(transaction::Args),
 }
 
+pub struct Context {
+    pub dirs: dirs::Dirs,
+}
+impl Context {
+    fn for_cli(cli: &Cli) -> miette::Result<Self> {
+        let dirs = dirs::Dirs::try_new(cli.root_dir.as_deref())?;
+
+        Ok(Context { dirs })
+    }
+}
+
 pub fn with_tracing() {
     let indicatif_layer = IndicatifLayer::new();
 
@@ -52,18 +62,11 @@ pub fn with_tracing() {
 async fn main() -> miette::Result<()> {
     let cli = Cli::parse();
 
-    match cli.command {
-        Commands::Chain(args) => {
-            // let ctx = Context::new(config, None, args.static_files)
-            //     .into_diagnostic()
-            //     .wrap_err("loading context failed")?;
+    let ctx = Context::for_cli(&cli)?;
 
-            chain::run(args).await
-        }
-        Commands::Wallet(args) => {
-            //let ctx = Context::load(cli.config, None, None).into_diagnostic()?;
-            wallet::run(args).await
-        }
+    match cli.command {
+        Commands::Chain(args) => chain::run(args, &ctx).await,
+        Commands::Wallet(args) => wallet::run(args).await,
         Commands::Transaction(args) => transaction::run(args).await,
     }
 }
