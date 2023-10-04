@@ -30,7 +30,7 @@ name = "mainnet"
 magic = 11111
 created_on = "2023-03-03"
 
-[[upstream]]
+[upstream]
 address = "my-relay:33301"
 
 [after]

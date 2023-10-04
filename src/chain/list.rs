@@ -1,7 +1,4 @@
-use std::{
-    fs,
-    io::{BufReader, Read},
-};
+use std::fs;
 
 use clap::Parser;
 use miette::{bail, IntoDiagnostic};
@@ -25,14 +22,8 @@ pub async fn run(_args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let mut chains: Vec<Chain> = Vec::new();
     for dir in fs::read_dir(chains_path).into_diagnostic()? {
         let dir = dir.into_diagnostic()?;
-        let config_path = dir.path().join("config.toml");
-        if config_path.exists() {
-            let file = fs::File::open(config_path).into_diagnostic()?;
-            let mut buf_reader = BufReader::new(file);
-            let mut contents = String::new();
-            buf_reader.read_to_string(&mut contents).into_diagnostic()?;
 
-            let chain: Chain = toml::from_str(&contents).into_diagnostic()?;
+        if let Some(chain) = Chain::from_path(&dir.path())? {
             chains.push(chain);
         }
     }

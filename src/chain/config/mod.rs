@@ -1,3 +1,9 @@
+use std::{
+    fs,
+    io::{BufReader, Read},
+    path::PathBuf,
+};
+
 use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
 use comfy_table::Table;
 use miette::{Context, IntoDiagnostic};
@@ -9,21 +15,21 @@ const DATE_FORMAT: &str = "%Y-%m-%d";
 
 #[derive(Serialize, Deserialize)]
 pub struct Chain {
-    version: String,
-    name: String,
-    upstream: Vec<ChainUpstream>,
-    magic: String,
-    after: Option<ChainAfter>,
+    pub version: String,
+    pub name: String,
+    pub upstream: ChainUpstream,
+    pub magic: String,
+    pub after: Option<ChainAfter>,
 
     #[serde(serialize_with = "serialize_date")]
     #[serde(deserialize_with = "deserialize_date")]
-    created_on: DateTime<Local>,
+    pub created_on: DateTime<Local>,
 }
 impl Chain {
     pub fn try_new(
         name: String,
         magic: String,
-        upstream: Vec<ChainUpstream>,
+        upstream: ChainUpstream,
         after: Option<String>,
     ) -> miette::Result<Self> {
         // TODO: Get cli version
@@ -44,6 +50,21 @@ impl Chain {
 
         Ok(chain)
     }
+
+    pub fn from_path(path: &PathBuf) -> miette::Result<Option<Self>> {
+        let config_path = path.join("config.toml");
+        if config_path.exists() {
+            let file = fs::File::open(config_path).into_diagnostic()?;
+            let mut buf_reader = BufReader::new(file);
+            let mut contents = String::new();
+            buf_reader.read_to_string(&mut contents).into_diagnostic()?;
+
+            let chain: Chain = toml::from_str(&contents).into_diagnostic()?;
+            return Ok(Some(chain));
+        }
+
+        Ok(None)
+    }
 }
 impl TryFrom<&Args> for Chain {
     type Error = miette::ErrReport;
@@ -53,7 +74,7 @@ impl TryFrom<&Args> for Chain {
         Ok(Self::try_new(
             value.name.clone(),
             value.magic.clone(),
-            vec![chain_upstream],
+            chain_upstream,
             value.after.clone(),
         )?)
     }
@@ -61,7 +82,7 @@ impl TryFrom<&Args> for Chain {
 
 #[derive(Serialize, Deserialize)]
 pub struct ChainUpstream {
-    address: String,
+    pub address: String,
 }
 impl ChainUpstream {
     pub fn new(address: String) -> Self {
@@ -137,14 +158,7 @@ impl ChainFormatter for Vec<Chain> {
         table.set_header(vec!["name", "upstream", "magic"]);
 
         for chain in self {
-            let upstream = chain
-                .upstream
-                .iter()
-                .map(|u| u.address.clone())
-                .collect::<Vec<String>>()
-                .join(",");
-
-            table.add_row(vec![&chain.name, &upstream, &chain.magic]);
+            table.add_row(vec![&chain.name, &chain.upstream.address, &chain.magic]);
         }
 
         println!("{table}");
