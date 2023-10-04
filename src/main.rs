@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 use tracing::Level;
 use tracing_indicatif::IndicatifLayer;
@@ -24,6 +24,15 @@ struct Cli {
         env = "CARDAMINAL_ROOT_DIR"
     )]
     root_dir: Option<PathBuf>,
+
+    #[arg(
+        short,
+        long,
+        global = true,
+        help = "output format for command response",
+        env = "CARDAMINAL_OUTPUT_FORMAT"
+    )]
+    output_format: Option<OutputFormat>,
 }
 
 #[derive(Subcommand)]
@@ -36,14 +45,25 @@ enum Commands {
     Transaction(transaction::Args),
 }
 
+#[derive(ValueEnum, Clone)]
+pub enum OutputFormat {
+    Json,
+    Table,
+}
+
 pub struct Context {
     pub dirs: dirs::Dirs,
+    pub output_format: OutputFormat,
 }
 impl Context {
     fn for_cli(cli: &Cli) -> miette::Result<Self> {
         let dirs = dirs::Dirs::try_new(cli.root_dir.as_deref())?;
+        let output_format = cli.output_format.clone().unwrap_or(OutputFormat::Json);
 
-        Ok(Context { dirs })
+        Ok(Context {
+            dirs,
+            output_format,
+        })
     }
 }
 
