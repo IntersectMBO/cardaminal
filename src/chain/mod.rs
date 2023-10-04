@@ -37,7 +37,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::Delete(args) => delete::run(args, ctx).await,
         Commands::Update(args) => {
             crate::with_tracing();
-            update::run(args).await
+            update::run(args, ctx).await
         }
     }
 }

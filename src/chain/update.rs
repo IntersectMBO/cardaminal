@@ -1,6 +1,6 @@
 use clap::Parser;
 use indicatif::ProgressStyle;
-use miette::IntoDiagnostic;
+use miette::{bail, IntoDiagnostic};
 use pallas::{
     ledger::traverse::MultiEraHeader,
     network::miniprotocols::{chainsync::NextResponse, Point},
@@ -8,7 +8,10 @@ use pallas::{
 use tracing::{info, info_span, instrument};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
-use crate::chain::sources::{n2n::bootstrap, IntersectConfig};
+use crate::chain::{
+    config::Chain,
+    sources::{n2n::bootstrap, IntersectConfig},
+};
 
 #[derive(Parser)]
 pub struct Args {
@@ -17,17 +20,20 @@ pub struct Args {
 }
 
 #[instrument("update", skip_all, fields(name=args.name))]
-pub async fn run(args: Args) -> miette::Result<()> {
+pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     info!(chain = args.name, "updating");
 
-    //TODO: load chain config file to get peer address, magic and intersect point
+    let chain_path = ctx.dirs.root_dir.join("chains").join(&args.name);
+    let chain = Chain::from_path(&chain_path)?;
+    if chain.is_none() {
+        bail!("chain not exist")
+    }
 
-    let mut peer_client = bootstrap(
-        "relays-new.cardano-mainnet.iohk.io:3001",
-        &764824073,
-        IntersectConfig::Origin,
-    )
-    .await?;
+    let chain = chain.unwrap();
+
+    //TODO: load latest point sync from chain database or get from after config
+
+    let mut peer_client = bootstrap(&chain, IntersectConfig::Origin).await?;
 
     let chainsync = peer_client.chainsync();
 
