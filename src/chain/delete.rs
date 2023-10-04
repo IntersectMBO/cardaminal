@@ -22,7 +22,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     }
 
     let confirm =
-        inquire::Confirm::new(&format!("Do you confirm deleting the {} chain", args.name))
+        inquire::Confirm::new(&format!("Do you confirm deleting the {} chain?", args.name))
             .prompt()
             .into_diagnostic()?;
 
