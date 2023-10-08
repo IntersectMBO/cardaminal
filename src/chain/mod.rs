@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use tracing::instrument;
 
+mod block;
 mod config;
 mod create;
 mod delete;
@@ -26,6 +27,8 @@ enum Commands {
     Update(update::Args),
     /// Dump data from the chain
     Dump(dump::Args),
+    /// Show the content of a block
+    Block(block::Args),
 }
 
 #[instrument("chain", skip_all)]
@@ -42,5 +45,6 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
             update::run(args, ctx).await
         }
         Commands::Dump(args) => dump::run(args, ctx).await,
+        Commands::Block(args) => block::run(args, ctx).await,
     }
 }
