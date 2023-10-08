@@ -58,7 +58,7 @@ pub struct Context {
 impl Context {
     fn for_cli(cli: &Cli) -> miette::Result<Self> {
         let dirs = dirs::Dirs::try_new(cli.root_dir.as_deref())?;
-        let output_format = cli.output_format.clone().unwrap_or(OutputFormat::Json);
+        let output_format = cli.output_format.clone().unwrap_or(OutputFormat::Table);
 
         Ok(Context {
             dirs,
