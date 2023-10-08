@@ -4,6 +4,7 @@ use tracing::instrument;
 mod config;
 mod create;
 mod delete;
+mod dump;
 mod list;
 mod update;
 
@@ -23,6 +24,8 @@ enum Commands {
     Delete(delete::Args),
     /// Sync a chain to latest point
     Update(update::Args),
+    /// Dump data from the chain
+    Dump(dump::Args),
 }
 
 #[instrument("chain", skip_all)]
@@ -38,5 +41,6 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
             crate::with_tracing();
             update::run(args, ctx).await
         }
+        Commands::Dump(args) => dump::run(args, ctx).await,
     }
 }
