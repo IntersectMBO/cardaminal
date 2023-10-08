@@ -1,7 +1,5 @@
-use std::fs;
-
 use clap::Parser;
-use miette::{bail, Context, IntoDiagnostic};
+use miette::Context;
 use tracing::instrument;
 
 use crate::{

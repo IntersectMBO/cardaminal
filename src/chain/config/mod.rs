@@ -1,5 +1,5 @@
 use std::{
-    fs::{self, DirEntry},
+    fs,
     io::{BufReader, Read},
     path::{Path, PathBuf},
 };
@@ -73,7 +73,7 @@ impl Chain {
     ) -> miette::Result<pallas::storage::rolldb::chain::Chain> {
         let db_path = Self::db_path(root_dir, name);
 
-        pallas::storage::rolldb::chain::Chain::open(&db_path)
+        pallas::storage::rolldb::chain::Chain::open(db_path)
             .into_diagnostic()
             .context("loading chain db")
     }
@@ -112,12 +112,13 @@ impl TryFrom<&Args> for Chain {
 
     fn try_from(value: &Args) -> Result<Self, Self::Error> {
         let chain_upstream = ChainUpstream::new(value.upstream.clone());
-        Ok(Self::try_new(
+
+        Self::try_new(
             value.name.clone(),
             value.magic.clone(),
             chain_upstream,
             value.after.clone(),
-        )?)
+        )
     }
 }
 
@@ -148,7 +149,7 @@ impl TryFrom<String> for ChainAfter {
     type Error = miette::ErrReport;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        let parts = value.split(",").collect::<Vec<&str>>();
+        let parts = value.split(',').collect::<Vec<&str>>();
 
         if parts.len() != 2 {
             return Err(miette::ErrReport::msg("invalid after format"));

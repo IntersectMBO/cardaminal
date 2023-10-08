@@ -1,14 +1,8 @@
-use std::fs;
-
 use clap::Parser;
 use comfy_table::Table;
-use miette::{bail, IntoDiagnostic};
 use tracing::instrument;
 
-use crate::{
-    chain::config::{Chain, ChainFormatter},
-    OutputFormat,
-};
+use crate::chain::config::Chain;
 
 #[derive(Parser)]
 pub struct Args {
