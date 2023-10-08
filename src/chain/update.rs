@@ -128,8 +128,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
                         info!("rolled back to origin");
 
-                        span.pb_set_position(0);
-                        span.pb_set_length(tip.1);
+                        update_progress(&span, 0, &tip);
                     }
                     Point::Specific(slot, _hash) => {
                         //let hash = Hash::<32>::from(&hash[0..8]);
