@@ -6,6 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# pallas = "0.19.1"
+# pallas = { path = "../pallas/pallas" }
+pallas = { git = "https://github.com/txpipe/pallas.git", branch = "feat/rolldb" }
+
 clap = { version = "4.4.3", features = ["derive", "env"] }
 inquire = "0.6.2"
 miette = { version = "5.10.0", features = ["fancy"] }
@@ -21,5 +25,4 @@ directories = "5.0.1"
 toml = "0.8.1"
 chrono = { version = "0.4.31", features = ["serde"] }
 slug = "0.1.4"
-pallas = "0.19.1"
 hex = "0.4.3"
