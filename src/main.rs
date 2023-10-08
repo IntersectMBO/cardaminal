@@ -1,3 +1,5 @@
+#![feature(iterator_try_collect)]
+
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 use tracing::Level;

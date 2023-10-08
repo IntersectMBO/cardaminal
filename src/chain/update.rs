@@ -1,6 +1,6 @@
 use clap::Parser;
 use indicatif::ProgressStyle;
-use miette::{bail, Context, IntoDiagnostic};
+use miette::{Context, IntoDiagnostic};
 use pallas::{
     ledger::traverse::MultiEraHeader,
     network::{
@@ -31,18 +31,10 @@ fn update_progress(span: &Span, slot: u64, tip: &Tip) {
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     info!(chain = args.name, "updating");
 
-    let chain_path = ctx.dirs.root_dir.join("chains").join(&args.name);
-    let chain = Chain::from_path(&chain_path)?;
-    if chain.is_none() {
-        bail!("chain not exist")
-    }
+    let chain = Chain::load_config(&ctx.dirs.root_dir, &args.name)?
+        .ok_or(miette::miette!("chain doesn't exist"))?;
 
-    let db_path = chain_path.join("db");
-    let mut db = pallas::storage::rolldb::chain::Chain::open(&db_path)
-        .into_diagnostic()
-        .context("can't open chain db")?;
-
-    let chain = chain.unwrap();
+    let mut db = Chain::load_db(&ctx.dirs.root_dir, &args.name)?;
 
     let points: Vec<_> = db
         .intersect_options(5)

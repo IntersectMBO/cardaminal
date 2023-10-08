@@ -1,7 +1,7 @@
 use std::{
-    fs,
+    fs::{self, DirEntry},
     io::{BufReader, Read},
-    path::PathBuf,
+    path::{Path, PathBuf},
 };
 
 use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
@@ -51,8 +51,9 @@ impl Chain {
         Ok(chain)
     }
 
-    pub fn from_path(path: &PathBuf) -> miette::Result<Option<Self>> {
-        let config_path = path.join("config.toml");
+    pub fn load_config(root_dir: &Path, name: &str) -> miette::Result<Option<Self>> {
+        let config_path = Self::config_path(root_dir, name);
+
         if config_path.exists() {
             let file = fs::File::open(config_path).into_diagnostic()?;
             let mut buf_reader = BufReader::new(file);
@@ -65,7 +66,47 @@ impl Chain {
 
         Ok(None)
     }
+
+    pub fn load_db(
+        root_dir: &Path,
+        name: &str,
+    ) -> miette::Result<pallas::storage::rolldb::chain::Chain> {
+        let db_path = Self::db_path(root_dir, name);
+
+        pallas::storage::rolldb::chain::Chain::open(&db_path)
+            .into_diagnostic()
+            .context("loading chain db")
+    }
+
+    pub fn dir(root_dir: &Path, name: &str) -> PathBuf {
+        root_dir.join("chains").join(name)
+    }
+
+    pub fn config_path(root_dir: &Path, name: &str) -> PathBuf {
+        Self::dir(root_dir, name).join("config.toml")
+    }
+
+    pub fn db_path(root_dir: &Path, name: &str) -> PathBuf {
+        Self::dir(root_dir, name).join("db")
+    }
+
+    pub fn list_available(root_dir: &Path) -> miette::Result<Vec<String>> {
+        let parent = root_dir
+            .join("chains")
+            .read_dir()
+            .into_diagnostic()
+            .context("can't read chain parent dir")?;
+
+        let names = parent
+            .into_iter()
+            .filter_map(|dir| dir.ok())
+            .map(|d| String::from(d.file_name().to_string_lossy()))
+            .collect();
+
+        Ok(names)
+    }
 }
+
 impl TryFrom<&Args> for Chain {
     type Error = miette::ErrReport;
 
@@ -84,6 +125,7 @@ impl TryFrom<&Args> for Chain {
 pub struct ChainUpstream {
     pub address: String,
 }
+
 impl ChainUpstream {
     pub fn new(address: String) -> Self {
         Self { address }
@@ -95,11 +137,13 @@ pub struct ChainAfter {
     slot: u64,
     hash: String,
 }
+
 impl ChainAfter {
     pub fn new(slot: u64, hash: String) -> Self {
         Self { slot, hash }
     }
 }
+
 impl TryFrom<String> for ChainAfter {
     type Error = miette::ErrReport;
 
