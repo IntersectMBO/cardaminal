@@ -1,5 +1,4 @@
 use clap::Parser;
-use comfy_table::Table;
 use miette::{Context, IntoDiagnostic};
 use pallas::crypto::hash::Hash;
 use tracing::instrument;
