@@ -1,7 +1,5 @@
 export default {
-  logo: (
-    <h1 className="font-bold text-4xl md:text-4xl lg:text-5xl">Cardaminal</h1>
-  ),
+  logo: <h1>Cardaminal</h1>,
   project: {
     link: "https://github.com/txpipe/cardaminal",
   },
