@@ -1,0 +1,22 @@
+# Create chain
+
+In this section you can create a new chain configuration. To create a new chain you need to define some necessary parameters, name, upstream and magic.
+
+## Parameters
+
+Below are all parameters supported to create a new chain configuration.
+
+- `name`: A friendly name to identify the chain. It will be converted to a slug, so if you pass `My mainnet` it will be `my-mainnet`
+- `upstream`: [host]:[port] of the upstream node
+- `magic`: Network magic of the chain
+- `after`: (optional) [slot],[hash] of the sync start point
+
+## Command
+
+Command description
+
+`cardaminal chain create [name] [upstream] [magic]`
+
+Below is an example of executing the command
+
+`cardaminal chain create mainnet relays-new.cardano-mainnet.iohk.io:3001 1`
