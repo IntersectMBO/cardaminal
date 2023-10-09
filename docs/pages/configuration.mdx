@@ -1,0 +1,52 @@
+import { Tabs, Callout } from "nextra/components";
+
+# Configuration
+
+In this section, you can configure how your Cardaminal should work.
+
+## Global Parameters
+
+Cardaminal uses a few global parameters to define your behavor, for example the directory to persist all settings/data, and output format.
+
+<Tabs items={["Parameter", "Environment", "Default"]}>
+    <Tabs.Tab>
+        You can manually set a global parameter to define the directory
+
+        - `root_dir`: root dir for settings and data
+        - `output_format`: output format for command response (json/table)
+
+        ```sh
+        cardaminal chain list --root_dir ./cardaminal --output_format json
+        ```
+    </Tabs.Tab>
+
+    <Tabs.Tab>
+        You can set an environment to define the directory
+
+        - `CARDAMINAL_ROOT_DIR`: root dir for settings and data
+        - `CARDAMINAL_OUTPUT_FORMAT`: output format for command response (json/table)
+
+        ```sh
+        export CARDAMINAL_ROOT_DIR=./cardaminal
+        export CARDAMINAL_OUTPUT_FORMAT=json
+        ```
+        <Callout> This example above works on Unix terminal </Callout>
+    </Tabs.Tab>
+
+    <Tabs.Tab>
+        All the global parameters has default
+
+        - `root dir`: the values depends on the system operational
+            ```text filename="Linux"
+            $XDG_DATA_HOME/cardaminal or $HOME/.local/share/cardaminal
+            ```
+            ```text filename="MacOS"
+            $HOME/Library/Application Support/cardaminal
+            ```
+            ```text filename="Windows"
+            {FOLDERID_RoamingAppData}/cardaminal/data
+            ```
+        - `output format`: default is **table**
+    </Tabs.Tab>
+
+</Tabs>
