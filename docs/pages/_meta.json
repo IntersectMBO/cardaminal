@@ -1,13 +1,6 @@
 {
-    "index": {
-        "title": "Home",
-        "type": "page",
-        "display": "hidden",
-        "theme": {
-            "layout": "full"
-        }
-    },
-    "chain": "Chain",
-    "wallet": "Wallet",
-    "transaction": "Transaction"
+    "index": "Introduction",
+    "chain": "chain",
+    "wallet": "wallet",
+    "transaction": "transaction"
 }
