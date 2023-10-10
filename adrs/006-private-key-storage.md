@@ -13,7 +13,7 @@ We will the the [cryptoxide](https://github.com/typed-io/cryptoxide) library for
 The steps of encrypting the private key will look like:
 
 1. Generate a random `salt` of length 16 to use in the argon2 KDF
-2. Derive the symmetric key that will be used to encrypt the private key by calling argon2 on the user-supplied password and the salt, using argon2d mode with no optional key and no AAD
+2. Derive the symmetric key that will be used to encrypt the private key by calling argon2 on the user-supplied password and the salt, using argon2d mode with 1_000_000 iterations and with no optional key or AAD
 3. Generate a random `nonce` of length 12 to use in the ChaCha20-Poly1305 encryption
 4. Use the derived key and generated nonce to ChaCha20-Poly1305 encrypt the private key we wish to secure, which will return the `ciphertext` and an AEAD `tag`
 5. Output and store the `data` bytestring `(version || salt || nonce || tag || ciphertext)`
