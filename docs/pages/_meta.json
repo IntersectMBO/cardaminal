@@ -1,0 +1,12 @@
+{
+    "index": "Introduction",
+    "start": "Get Started",
+    "configuration": "Configuration",
+    "-- More": {
+        "type": "separator",
+        "title": "Commands"
+    },
+    "chain": "Chain",
+    "wallet": "Wallet",
+    "transaction": "Transaction"
+}

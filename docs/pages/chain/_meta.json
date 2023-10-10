@@ -1,0 +1,8 @@
+{
+    "create": "Create",
+    "list": "List",
+    "sync": "Sync",
+    "delete": "Delete",
+    "block": "Block",
+    "dump": "Dump"
+}
