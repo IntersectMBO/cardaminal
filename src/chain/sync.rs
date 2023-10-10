@@ -18,7 +18,7 @@ use crate::chain::config::Chain;
 
 #[derive(Parser)]
 pub struct Args {
-    /// Name of the chain to update
+    /// Name of the chain to synchronize
     name: String,
 }
 
@@ -27,7 +27,7 @@ fn update_progress(span: &Span, slot: u64, tip: &Tip) {
     span.pb_set_length(tip.0.slot_or_default());
 }
 
-#[instrument("update", skip_all, fields(name=args.name))]
+#[instrument("sync", skip_all, fields(name=args.name))]
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     info!(chain = args.name, "updating");
 
@@ -65,7 +65,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
             .into_diagnostic()?;
     }
 
-    let span = info_span!("chain-update");
+    let span = info_span!("chain-sync");
     span.pb_set_style(&ProgressStyle::default_bar());
     span.pb_set_style(
         &ProgressStyle::with_template(
@@ -141,7 +141,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         };
     }
 
-    info!("chain updated");
+    info!("chain synchronized");
 
     Ok(())
 }
