@@ -60,6 +60,9 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         bail!("password is required")
     }
 
+    // TODO: encrypt keys with password
+    // TODO: generate keys using pallas and save
+
     fs::create_dir_all(&wallet_path).into_diagnostic()?;
 
     let wallet: Wallet = (&args).into();
