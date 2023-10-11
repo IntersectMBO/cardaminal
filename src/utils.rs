@@ -26,3 +26,8 @@ where
 
     Ok(local_date)
 }
+
+pub trait OutputFormatter {
+    fn to_table(&self);
+    fn to_json(&self);
+}
