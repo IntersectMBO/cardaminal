@@ -4,14 +4,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
+use chrono::{DateTime, Local};
 use comfy_table::Table;
 use miette::{Context, IntoDiagnostic};
-use serde::{de, Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
+use crate::utils::{serialize_date, deserialize_date};
 use super::create::Args;
-
-const DATE_FORMAT: &str = "%Y-%m-%d";
 
 #[derive(Serialize, Deserialize)]
 pub struct Chain {
@@ -164,30 +163,6 @@ impl TryFrom<String> for ChainAfter {
 
         Ok(ChainAfter::new(slot, hash.to_string()))
     }
-}
-
-fn serialize_date<S>(date: &DateTime<Local>, serializer: S) -> Result<S::Ok, S::Error>
-where
-    S: Serializer,
-{
-    let date_str = date.format(DATE_FORMAT).to_string();
-    serializer.serialize_str(&date_str)
-}
-
-fn deserialize_date<'de, D>(deserializer: D) -> Result<DateTime<Local>, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let date_str: String = Deserialize::deserialize(deserializer)?;
-
-    let parsed_date =
-        NaiveDate::parse_from_str(&date_str, DATE_FORMAT).map_err(de::Error::custom)?;
-
-    let local_date = Local
-        .from_local_datetime(&NaiveDateTime::new(parsed_date, NaiveTime::default()))
-        .unwrap();
-
-    Ok(local_date)
 }
 
 // TODO: validate if other structs could use this trait and if yes, will change to global formatter trait

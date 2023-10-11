@@ -1,0 +1,32 @@
+# Create wallet
+
+In this section you can create a new wallet configuration and key pair. To ensure security, you must enter a password for your private keys to be encrypted on the disk.
+
+## Parameters
+
+Below are all parameters supported to create a new wallet.
+
+- `name`: name to identify the wallet. It will be converted to a slug, so if you pass `My wallet` it will be `my-wallet`
+- `chain`: (optional) chain name existing. You can set the env `CARDAMINAL_DEFAULT_CHAIN` to define this value
+- `password`: spending password used to encrypt the private keys
+- `interactive`: use interactive mode
+
+## Command
+
+Command description
+
+```sh
+cardaminal wallet create [name] --chain [chain] --password [password]
+```
+
+or with interactive mode
+
+```sh
+cardaminal wallet create [name] --chain [chain] -i
+```
+
+Below is an example of executing the command
+
+```sh
+cardaminal wallet create my-wallet --chain mainnet --password my-password
+```

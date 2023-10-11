@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use tracing::instrument;
 
 mod attach;
+mod config;
 mod create;
 mod detach;
 mod history;
@@ -34,9 +35,9 @@ enum Commands {
 }
 
 #[instrument("wallet", skip_all)]
-pub async fn run(args: Args) -> miette::Result<()> {
+pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
-        Commands::Create(args) => create::run(args).await,
+        Commands::Create(args) => create::run(args, ctx).await,
         Commands::List(args) => list::run(args).await,
         Commands::Update(args) => {
             crate::with_tracing();
