@@ -38,7 +38,7 @@ enum Commands {
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
         Commands::Create(args) => create::run(args, ctx).await,
-        Commands::List(args) => list::run(args).await,
+        Commands::List(args) => list::run(args, ctx).await,
         Commands::Update(args) => {
             crate::with_tracing();
             update::run(args).await

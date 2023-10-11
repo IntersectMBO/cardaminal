@@ -9,8 +9,8 @@ use comfy_table::Table;
 use miette::{Context, IntoDiagnostic};
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{serialize_date, deserialize_date};
 use super::create::Args;
+use crate::utils::{deserialize_date, serialize_date, OutputFormatter};
 
 #[derive(Serialize, Deserialize)]
 pub struct Chain {
@@ -165,13 +165,7 @@ impl TryFrom<String> for ChainAfter {
     }
 }
 
-// TODO: validate if other structs could use this trait and if yes, will change to global formatter trait
-pub trait ChainFormatter {
-    fn to_table(&self);
-    fn to_json(&self);
-}
-
-impl ChainFormatter for Vec<Chain> {
+impl OutputFormatter for Vec<Chain> {
     fn to_table(&self) {
         let mut table = Table::new();
 
