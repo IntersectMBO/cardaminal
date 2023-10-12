@@ -111,9 +111,15 @@ impl WalletDB {
             .await
     }
 
-    // pub async fn fetch_utxos_for_address(&self, address: Address) -> () {
-    //     ()
-    // }
+    pub async fn fetch_utxos_for_address(
+        &self,
+        address: Address,
+    ) -> Result<Vec<utxo::Model>, DbErr> {
+        Utxo::find()
+            .filter(utxo::Column::FullAddress.eq(address.to_vec()))
+            .all(&self.conn)
+            .await
+    }
 
     // // TODO: balance type
     // pub async fn insert_history_tx(&self, tx_hash: [u8; 32], slot: u64, tx_block_index: u16, delta: Vec<u8> ) -> {
