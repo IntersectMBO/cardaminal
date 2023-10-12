@@ -1,6 +1,10 @@
+use std::fs;
+
 use clap::Parser;
-use miette::IntoDiagnostic;
+use miette::{bail, IntoDiagnostic};
 use tracing::{info, instrument};
+
+use crate::wallet::dal::WalletDB;
 
 pub fn gather_inputs() -> miette::Result<()> {
     let _ = inquire::Password::new("password:")
@@ -31,10 +35,27 @@ pub struct Args {
 }
 
 #[instrument("create", skip_all)]
-pub async fn run(args: Args) -> miette::Result<()> {
+pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     if args.interactive {
         gather_inputs()?;
     }
+
+    let wallet_slug = slug::slugify(&args.name);
+
+    let wallet_path = ctx.dirs.root_dir.join("wallets").join(&wallet_slug);
+    if wallet_path.exists() {
+        bail!("wallet already exists")
+    }
+
+    fs::create_dir_all(&wallet_path).into_diagnostic()?;
+
+    // open wallet db
+    let db = WalletDB::open(&args.name, wallet_path)
+        .await
+        .into_diagnostic()?;
+
+    // create required tables in db
+    db.migrate_up().await.into_diagnostic()?;
 
     info!(wallet = args.name, "created");
     Ok(())
