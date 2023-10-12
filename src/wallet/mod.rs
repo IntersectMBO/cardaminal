@@ -47,10 +47,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
             crate::with_tracing();
             attach::run(args, ctx).await
         }
-        Commands::Detach(args) => {
-            crate::with_tracing();
-            detach::run(args).await
-        }
+        Commands::Detach(args) => detach::run(args, ctx).await,
         Commands::History(args) => history::run(args).await,
         Commands::Utxos(args) => utxos::run(args).await,
     }
