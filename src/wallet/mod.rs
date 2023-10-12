@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use tracing::instrument;
 
 mod attach;
+mod config;
 mod create;
 mod dal;
 mod detach;
@@ -38,14 +39,14 @@ enum Commands {
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
         Commands::Create(args) => create::run(args, ctx).await,
-        Commands::List(args) => list::run(args).await,
+        Commands::List(args) => list::run(args, ctx).await,
         Commands::Update(args) => {
             crate::with_tracing();
             update::run(args).await
         }
         Commands::Attach(args) => {
             crate::with_tracing();
-            attach::run(args).await
+            attach::run(args, ctx).await
         }
         Commands::Detach(args) => {
             crate::with_tracing();

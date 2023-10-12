@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use tracing::instrument;
 
 mod block;
-mod config;
+pub mod config;
 mod create;
 mod delete;
 mod dump;

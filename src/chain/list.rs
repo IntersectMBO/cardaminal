@@ -2,10 +2,7 @@ use clap::Parser;
 use miette::Context;
 use tracing::instrument;
 
-use crate::{
-    chain::config::{Chain, ChainFormatter},
-    OutputFormat,
-};
+use crate::{chain::config::Chain, utils::OutputFormatter, OutputFormat};
 
 #[derive(Parser)]
 pub struct Args {}

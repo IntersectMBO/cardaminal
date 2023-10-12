@@ -7,6 +7,7 @@ use tracing_subscriber::prelude::*;
 mod chain;
 mod dirs;
 mod transaction;
+mod utils;
 mod wallet;
 
 #[derive(Parser)]
