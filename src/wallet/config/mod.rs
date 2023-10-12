@@ -1,6 +1,6 @@
 use std::{
     fs,
-    io::{BufReader, Read},
+    io::{BufReader, Read, Write},
     path::{Path, PathBuf},
 };
 
@@ -24,6 +24,7 @@ pub struct Wallet {
 }
 impl Wallet {
     pub fn new(name: String, chain: Option<String>) -> Self {
+        // TODO: Get cli version
         let version = String::from("v1alpha");
 
         Self {
@@ -72,6 +73,14 @@ impl Wallet {
             .collect();
 
         Ok(names)
+    }
+
+    pub fn save_config(&self, root_dir: &Path) -> miette::Result<()> {
+        let config_path = Self::config_path(root_dir, &self.name);
+        let toml_string = toml::to_string(self).into_diagnostic()?;
+        let mut file = fs::File::create(config_path).into_diagnostic()?;
+        file.write_all(toml_string.as_bytes()).into_diagnostic()?;
+        Ok(())
     }
 }
 impl From<&Args> for Wallet {

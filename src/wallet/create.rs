@@ -1,4 +1,4 @@
-use std::{fs, io::Write};
+use std::fs;
 
 use clap::Parser;
 use miette::{bail, IntoDiagnostic};
@@ -67,9 +67,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
     let wallet: Wallet = (&args).into();
 
-    let toml_string = toml::to_string(&wallet).into_diagnostic()?;
-    let mut file = fs::File::create(wallet_path.join("config.toml")).into_diagnostic()?;
-    file.write_all(toml_string.as_bytes()).into_diagnostic()?;
+    wallet.save_config(&ctx.dirs.root_dir)?;
 
     info!(wallet = args.name, "created");
     Ok(())
