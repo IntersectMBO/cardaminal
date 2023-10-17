@@ -4,6 +4,7 @@ use tracing::instrument;
 mod attach;
 mod config;
 mod create;
+mod dal;
 mod detach;
 mod history;
 mod list;
