@@ -118,7 +118,7 @@ impl WalletDB {
         page_size: Option<u64>,
     ) -> Paginator<'_, DatabaseConnection, SelectModel<utxo::Model>> {
         Utxo::find()
-            .order_by(tx_history::Column::Slot, order.clone())
+            .order_by(utxo::Column::Slot, order.clone())
             .paginate(&self.conn, page_size.unwrap_or(DEFAULT_PAGE_SIZE))
     }
 
@@ -291,5 +291,128 @@ impl WalletDB {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use pallas::ledger::{
+        primitives::babbage::TransactionInput,
+        traverse::{Era, MultiEraInput, MultiEraOutput},
+    };
+    use sea_orm::{Database, Order};
+
+    use super::WalletDB;
+
+    #[tokio::test]
+    async fn insert_utxos() {
+        let sqlite_url = format!("sqlite:/tmp/test_utxos.sqlite?mode=rwc");
+        let db = Database::connect(&sqlite_url).await.unwrap();
+
+        let wallet_db = WalletDB {
+            name: "test_utxos".into(),
+            path: sqlite_url.into(),
+            conn: db,
+        };
+
+        wallet_db.migrate_up().await.unwrap();
+
+        let init_utxos = wallet_db
+            .paginate_utxos(Order::Asc, None)
+            .fetch()
+            .await
+            .unwrap();
+
+        assert!(init_utxos.is_empty());
+
+        let hash_0: [u8; 32] =
+            hex::decode("5d588bb46091b249f0f6874e97e3738d16e4f20f250242d6e08a93ccbf0d0e30")
+                .unwrap()
+                .try_into()
+                .unwrap();
+        let index_0 = 2;
+        let utxo_cbor_0 = hex::decode("82583901576aefddef29b4168f74b78879404b62e98ce7b761874130fb48b996096c02a359fc0ab647b202a0351269ea72e84061b2ad3b40f00067c4821a00169b08a1581cec2e1c314ee754cea4ba3afc69f74b2130f87bb3928e1a1e8534c209a14f526167696e675465656e303331313901").unwrap();
+        let utxo_0 = MultiEraOutput::decode(Era::Alonzo, &utxo_cbor_0).unwrap();
+        let slot_0 = 49503576;
+
+        let hash_1: [u8; 32] =
+            hex::decode("5d588bb46091b249f0f6874e97e3738d16e4f20f250242d6e08a93ccbf0d0e30")
+                .unwrap()
+                .try_into()
+                .unwrap();
+        let index_1 = 3;
+        let utxo_cbor_1 = hex::decode("82583901576aefddef29b4168f74b78879404b62e98ce7b761874130fb48b996096c02a359fc0ab647b202a0351269ea72e84061b2ad3b40f00067c4821a0c507ff2a4581cb000e9f3994de3226577b4d61280994e53c07948c8839d628f4a425aa14f436c756d737947686f73747335343501581cc364930bd612f42e14d156e1c5410511e77f64cab8f2367a9df544d1a154426f7373436174526f636b6574436c756238393001581cec2e1c314ee754cea4ba3afc69f74b2130f87bb3928e1a1e8534c209af4e526167696e675465656e30303132014f526167696e675465656e3030383838014f526167696e675465656e3031303834014f526167696e675465656e3031333836014f526167696e675465656e3031363330014f526167696e675465656e3031363434014f526167696e675465656e3031393435014f526167696e675465656e3031393933014f526167696e675465656e3032333535014f526167696e675465656e3032363533014f526167696e675465656e3033303233014f526167696e675465656e3033353633014f526167696e675465656e3033383039014f526167696e675465656e3034313731014f526167696e675465656e303437393201581cf0ff48bbb7bbe9d59a40f1ce90e9e9d0ff5002ec48f232b49ca0fb9aa14b63617264616e6f2e61646101").unwrap();
+        let utxo_1 = MultiEraOutput::decode(Era::Alonzo, &utxo_cbor_1).unwrap();
+        let slot_1 = 49503576;
+
+        let utxos = vec![
+            (hash_0, index_0, utxo_0, slot_0),
+            (hash_1, index_1, utxo_1, slot_1),
+        ];
+
+        wallet_db.insert_utxos(utxos).await.unwrap();
+
+        let now_utxos = wallet_db
+            .paginate_utxos(Order::Asc, None)
+            .fetch()
+            .await
+            .unwrap();
+
+        assert_eq!(now_utxos.len(), 2);
+        assert_eq!(now_utxos[0].txo_index, 2);
+        assert_eq!(now_utxos[0].slot, 49503576);
+        assert_eq!(now_utxos[1].txo_index, 3);
+        assert_eq!(now_utxos[1].slot, 49503576);
+    }
+
+    #[tokio::test]
+    async fn remove_utxos() {
+        let sqlite_url = format!("sqlite:/tmp/test_utxos.sqlite?mode=rwc");
+        let db = Database::connect(&sqlite_url).await.unwrap();
+
+        let wallet_db = WalletDB {
+            name: "test_insert_utxos".into(),
+            path: sqlite_url.into(),
+            conn: db,
+        };
+
+        wallet_db.migrate_up().await.unwrap();
+
+        let init_utxos = wallet_db
+            .paginate_utxos(Order::Asc, None)
+            .fetch()
+            .await
+            .unwrap();
+
+        let mut to_remove = vec![];
+
+        for utxo in init_utxos {
+            let tx_hash: [u8; 32] = utxo.tx_hash.try_into().unwrap();
+
+            let txin = TransactionInput {
+                transaction_id: tx_hash.into(),
+                index: utxo.txo_index.try_into().unwrap(),
+            };
+
+            to_remove.push(txin);
+        }
+
+        wallet_db
+            .remove_utxos(
+                to_remove
+                    .iter()
+                    .map(|i| MultiEraInput::from_alonzo_compatible(i))
+                    .collect(),
+            )
+            .await
+            .unwrap();
+
+        let now_utxos = wallet_db
+            .paginate_utxos(Order::Asc, None)
+            .fetch()
+            .await
+            .unwrap();
+
+        assert!(now_utxos.is_empty())
     }
 }
