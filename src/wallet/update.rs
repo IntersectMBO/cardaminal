@@ -257,9 +257,8 @@ pub async fn process_block(
         let lovelace_delta = value_deltas
             .remove(&vec![])
             .unwrap()
-            .get(&vec![])
-            .unwrap()
-            .clone();
+            .remove(&vec![])
+            .unwrap();
 
         // add history entry
         if involved {
@@ -267,7 +266,7 @@ pub async fn process_block(
             // I was going to include value delta as CBOR encoding of a Value
             // object, but Value can only hold u64, whereas we need negative
             // amounts and amounts larger than 64 bit (as we potentially sum
-            // u64 values)
+            // u64 values), for now it is just lovelace change i128 big endian
             wallet_db
                 .insert_history_tx(
                     *tx.hash(),
