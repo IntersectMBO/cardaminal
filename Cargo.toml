@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 # pallas = "0.19.1"
 # pallas = { path = "../pallas/pallas" }
-pallas = { git = "https://github.com/txpipe/pallas.git", branch = "feat/rolldb" }
+pallas = { git = "https://github.com/txpipe/pallas.git", rev = "d023502d500133b583110a4f1a8d83086e94d432", features = ["unstable"] }
 
 clap = { version = "4.4.3", features = ["derive", "env"] }
 inquire = "0.6.2"

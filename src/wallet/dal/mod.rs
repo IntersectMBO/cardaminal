@@ -40,13 +40,11 @@ impl WalletDB {
 
     pub async fn insert_utxos(
         &self,
-        utxos: Vec<(MultiEraInput<'_>, MultiEraOutput<'_>, u64)>,
+        utxos: Vec<([u8; 32], usize, MultiEraOutput<'_>, u64)>,
     ) -> Result<(), DbErr> {
         let txn = self.conn.begin().await?;
 
-        for (txin, txout, slot) in utxos {
-            let (tx_hash, txo_index) = (txin.hash(), txin.index());
-
+        for (tx_hash, txo_index, txout, slot) in utxos {
             let address = txout.address().unwrap();
 
             let address_bytes = address.to_vec();
@@ -85,8 +83,13 @@ impl WalletDB {
         txn.commit().await
     }
 
-    pub async fn remove_utxos(&self, utxos: Vec<MultiEraInput<'_>>) -> Result<(), DbErr> {
+    pub async fn remove_utxos(
+        &self,
+        utxos: Vec<MultiEraInput<'_>>,
+    ) -> Result<Vec<utxo::Model>, DbErr> {
         let txn = self.conn.begin().await?;
+
+        let mut removed = vec![];
 
         for txin in utxos {
             if let Some(utxo_model) = Utxo::find()
@@ -98,11 +101,15 @@ impl WalletDB {
                 .one(&txn)
                 .await?
             {
+                removed.push(utxo_model.clone());
+
                 let _ = utxo_model.delete(&txn).await?;
             }
         }
 
-        txn.commit().await
+        txn.commit().await?;
+
+        Ok(removed)
     }
 
     pub fn paginate_utxos(
@@ -173,6 +180,16 @@ impl WalletDB {
         let _ = RecentPoints::insert(point_model).exec(&self.conn).await?;
 
         Ok(())
+    }
+
+    /// Paginate entries in Recents Points table in descending order
+    pub fn paginate_recent_points(
+        &self,
+        page_size: Option<u64>,
+    ) -> Paginator<'_, DatabaseConnection, SelectModel<recent_points::Model>> {
+        RecentPoints::find()
+            .order_by_desc(recent_points::Column::Slot)
+            .paginate(&self.conn, page_size.unwrap_or(DEFAULT_PAGE_SIZE))
     }
 
     pub async fn remove_recent_points_before_slot(&self, slot: u64) -> Result<(), DbErr> {

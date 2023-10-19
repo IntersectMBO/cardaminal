@@ -2057,9 +2057,10 @@ checksum = "c1b04fb49957986fdce4d6ee7a65027d55d4b6d2265e5848bbb507b58ccfdb6f"
 [[package]]
 name = "pallas"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
  "pallas-addresses",
+ "pallas-applying",
  "pallas-codec",
  "pallas-configs",
  "pallas-crypto",
@@ -2073,7 +2074,7 @@ dependencies = [
 [[package]]
 name = "pallas-addresses"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
  "base58",
  "bech32",
@@ -2086,19 +2087,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallas-applying"
+version = "0.19.1"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
+dependencies = [
+ "pallas-codec",
+ "pallas-crypto",
+ "pallas-primitives",
+ "pallas-traverse",
+ "rand",
+]
+
+[[package]]
 name = "pallas-codec"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
  "hex",
  "minicbor",
  "serde",
+ "thiserror",
 ]
 
 [[package]]
 name = "pallas-configs"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
  "base64 0.21.4",
  "hex",
@@ -2112,7 +2126,7 @@ dependencies = [
 [[package]]
 name = "pallas-crypto"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
  "cryptoxide",
  "hex",
@@ -2125,7 +2139,7 @@ dependencies = [
 [[package]]
 name = "pallas-network"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
  "byteorder",
  "hex",
@@ -2140,7 +2154,7 @@ dependencies = [
 [[package]]
 name = "pallas-primitives"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
  "base58",
  "bech32",
@@ -2155,9 +2169,12 @@ dependencies = [
 [[package]]
 name = "pallas-rolldb"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
+ "async-stream",
  "bincode",
+ "futures-core",
+ "futures-util",
  "pallas-crypto",
  "rocksdb",
  "serde",
@@ -2169,7 +2186,7 @@ dependencies = [
 [[package]]
 name = "pallas-traverse"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
  "hex",
  "pallas-addresses",
@@ -2183,7 +2200,7 @@ dependencies = [
 [[package]]
 name = "pallas-utxorpc"
 version = "0.19.1"
-source = "git+https://github.com/txpipe/pallas.git?branch=feat/rolldb#a5dba335a8ba57c0662d515f237edce0fb434189"
+source = "git+https://github.com/txpipe/pallas.git?rev=d023502d500133b583110a4f1a8d83086e94d432#d023502d500133b583110a4f1a8d83086e94d432"
 dependencies = [
  "pallas-codec",
  "pallas-primitives",
