@@ -2,5 +2,6 @@
     "create": "Create",
     "list": "List",
     "attach": "Attach",
-    "detach": "Detach"
+    "detach": "Detach",
+    "utxos": "Utxos"
 }
