@@ -291,7 +291,7 @@ mod tests {
         let db = Database::connect(&sqlite_url).await.unwrap();
 
         let wallet_db = WalletDB {
-            name: "test_insert_utxos".into(),
+            name: "test_utxos".into(),
             path: sqlite_url.into(),
             conn: db,
         };
@@ -365,8 +365,6 @@ mod tests {
             .await
             .unwrap();
 
-        println!("bb {init_utxos:?}");
-
         let mut to_remove = vec![];
 
         for utxo in init_utxos {
@@ -379,8 +377,6 @@ mod tests {
 
             to_remove.push(txin);
         }
-
-        println!("aa {to_remove:?}");
 
         wallet_db
             .remove_utxos(
