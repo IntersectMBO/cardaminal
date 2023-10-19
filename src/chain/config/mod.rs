@@ -69,10 +69,10 @@ impl Chain {
     pub fn load_db(
         root_dir: &Path,
         name: &str,
-    ) -> miette::Result<pallas::storage::rolldb::chain::Chain> {
+    ) -> miette::Result<pallas::storage::rolldb::chain::Store> {
         let db_path = Self::db_path(root_dir, name);
 
-        pallas::storage::rolldb::chain::Chain::open(db_path)
+        pallas::storage::rolldb::chain::Store::open(db_path)
             .into_diagnostic()
             .context("loading chain db")
     }
