@@ -7,6 +7,7 @@ mod create;
 mod dal;
 mod detach;
 mod history;
+mod keys;
 mod list;
 mod update;
 mod utxos;
