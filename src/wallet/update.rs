@@ -1,4 +1,4 @@
-use std::{collections::HashMap, iter};
+use std::{collections::HashMap, fs, iter};
 
 use clap::Parser;
 use indicatif::ProgressStyle;
@@ -53,6 +53,14 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     if !wallet_path.exists() {
         bail!("could not find a wallet named '{}'", &args.wallet)
     }
+
+    let wallet_pkh: [u8; 28] = match fs::read(wallet_path.join("pkh.pub"))
+        .into_diagnostic()?
+        .try_into()
+    {
+        Ok(h) => h,
+        Err(_) => bail!("malformed pubkeyhash file"),
+    };
 
     let wallet_db = WalletDB::open(&args.wallet, &wallet_path)
         .await
@@ -129,8 +137,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
             let block = MultiEraBlock::decode(&block_bytes).into_diagnostic()?;
 
-            // dummy
-            let wallet_pkhs = vec![[0u8; 28], [1; 28]];
+            let wallet_pkhs = vec![wallet_pkh];
 
             process_block(&wallet_db, &block, wallet_pkhs).await?;
 
