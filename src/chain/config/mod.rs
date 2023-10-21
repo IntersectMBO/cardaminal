@@ -7,6 +7,7 @@ use std::{
 use chrono::{DateTime, Local};
 use comfy_table::Table;
 use miette::{Context, IntoDiagnostic};
+use pallas::crypto::hash::Hash;
 use serde::{Deserialize, Serialize};
 
 use super::create::Args;
@@ -138,12 +139,12 @@ impl ChainUpstream {
 
 #[derive(Serialize, Deserialize)]
 pub struct ChainAfter {
-    slot: u64,
-    hash: String,
+    pub slot: u64,
+    pub hash: Hash<32>,
 }
 
 impl ChainAfter {
-    pub fn new(slot: u64, hash: String) -> Self {
+    pub fn new(slot: u64, hash: Hash<32>) -> Self {
         Self { slot, hash }
     }
 }
@@ -163,9 +164,12 @@ impl TryFrom<String> for ChainAfter {
             .into_diagnostic()
             .with_context(|| "After slot must be u64")?;
 
-        let hash = parts[1];
+        let hash = parts[1]
+            .parse()
+            .into_diagnostic()
+            .context("parsing hash value")?;
 
-        Ok(ChainAfter::new(slot, hash.to_string()))
+        Ok(ChainAfter::new(slot, hash))
     }
 }
 
