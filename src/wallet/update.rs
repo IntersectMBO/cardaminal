@@ -1,4 +1,4 @@
-use std::{collections::HashMap, iter, thread, time::Duration};
+use std::{collections::HashMap, fs, iter};
 
 use clap::Parser;
 use indicatif::ProgressStyle;
@@ -14,7 +14,10 @@ use pallas::{
 use tracing::{info, info_span, instrument, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
-use crate::{chain::config::Chain, wallet::{dal::WalletDB, config::Wallet}};
+use crate::{
+    chain::config::Chain,
+    wallet::{config::Wallet, dal::WalletDB},
+};
 
 #[derive(Parser)]
 pub struct Args {
@@ -29,7 +32,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let chain_name = match Wallet::load_config(&ctx.dirs.root_dir, &args.wallet)? {
         Some(cfg) => match cfg.chain {
             Some(n) => n,
-            None => bail!("wallet not attached to a chain")
+            None => bail!("wallet not attached to a chain"),
         },
         None => bail!("wallet doesn't exist"),
     };
@@ -51,7 +54,15 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         bail!("could not find a wallet named '{}'", &args.wallet)
     }
 
-    let wallet_db = WalletDB::open(&args.wallet, wallet_path)
+    let wallet_pkh: [u8; 28] = match fs::read(wallet_path.join("pkh.pub"))
+        .into_diagnostic()?
+        .try_into()
+    {
+        Ok(h) => h,
+        Err(_) => bail!("malformed pubkeyhash file"),
+    };
+
+    let wallet_db = WalletDB::open(&args.wallet, &wallet_path)
         .await
         .into_diagnostic()?;
 
@@ -81,13 +92,10 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
         match found_intersect {
             Some(p) => {
-                wallet_db
-                    .rollback_to_slot(p.0)
-                    .await
-                    .into_diagnostic()?;
+                wallet_db.rollback_to_slot(p.0).await.into_diagnostic()?;
 
                 Some(p)
-            },
+            }
             None => bail!("could not intersect wallet db with chain"),
         }
     };
@@ -129,8 +137,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
             let block = MultiEraBlock::decode(&block_bytes).into_diagnostic()?;
 
-            // dummy
-            let wallet_pkhs = vec![[0u8; 28], [1; 28]];
+            let wallet_pkhs = vec![wallet_pkh];
 
             process_block(&wallet_db, &block, wallet_pkhs).await?;
 

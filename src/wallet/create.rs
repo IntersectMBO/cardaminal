@@ -2,11 +2,14 @@ use std::fs;
 
 use clap::Parser;
 use miette::{bail, IntoDiagnostic};
+use pallas::ledger::addresses::{
+    Network, ShelleyAddress, ShelleyDelegationPart, ShelleyPaymentPart,
+};
 use tracing::{info, instrument};
 
 use crate::{
     chain::config::Chain,
-    wallet::{config::Wallet, dal::WalletDB},
+    wallet::{config::Wallet, dal::WalletDB, keys},
 };
 
 pub fn gather_inputs(args: &mut Args) -> miette::Result<()> {
@@ -59,9 +62,10 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         gather_inputs(&mut args)?;
     }
 
-    if args.password.is_none() {
-        bail!("password is required")
-    }
+    let password = match &args.password {
+        Some(p) => p,
+        None => bail!("password is required"),
+    };
 
     let wallet_slug = slug::slugify(&args.name);
 
@@ -73,15 +77,44 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     fs::create_dir_all(&wallet_path).into_diagnostic()?;
 
     // open wallet db
-    let db = WalletDB::open(&args.name, wallet_path)
+    let db = WalletDB::open(&args.name, &wallet_path)
         .await
         .into_diagnostic()?;
 
     // create required tables in db
     db.migrate_up().await.into_diagnostic()?;
 
-    // TODO: encrypt keys with password
-    // TODO: generate keys using pallas and save
+    // TODO: generate keys using pallas
+    let (priv_key, pkh) = keys::temp_keygen();
+
+    let encrypted_priv_key = keys::encrypt_privkey(password, priv_key);
+
+    fs::write(wallet_path.join("privkey.enc"), encrypted_priv_key.clone()).into_diagnostic()?;
+    fs::write(wallet_path.join("pkh.pub"), pkh).into_diagnostic()?;
+
+    let mainnet_address = ShelleyAddress::new(
+        Network::Mainnet,
+        ShelleyPaymentPart::key_hash(pkh.into()),
+        ShelleyDelegationPart::Null,
+    );
+
+    fs::write(
+        wallet_path.join("address_mainnet_enterprise"),
+        mainnet_address.to_bech32().unwrap(),
+    )
+    .into_diagnostic()?;
+
+    let testnet_address = ShelleyAddress::new(
+        Network::Testnet,
+        ShelleyPaymentPart::key_hash(pkh.into()),
+        ShelleyDelegationPart::Null,
+    );
+
+    fs::write(
+        wallet_path.join("address_testnet_enterprise"),
+        testnet_address.to_bech32().unwrap(),
+    )
+    .into_diagnostic()?;
 
     let wallet: Wallet = (&args).into();
 

@@ -17,6 +17,9 @@ pub struct Args {
     /// network magic of the chain
     pub magic: String,
 
+    /// network id for addresses
+    pub address_network_id: u8,
+
     /// [slot],[hash] of the sync start point
     #[arg(short, long)]
     pub after: Option<String>,
