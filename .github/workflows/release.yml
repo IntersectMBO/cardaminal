@@ -1,5 +1,4 @@
 name: Release
-
 on:
   push:
     tags:
@@ -12,37 +11,44 @@ jobs:
     strategy:
       matrix:
         include:
-          - release_for: Linux-GNU-x86_64
+          - release_for: Linux-GNU-amd64
             os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            arch: amd64
             args: "--locked --release"
             bin: cardaminal
 
-          - release_for: Linux-GNU-armv7
+          - release_for: Linux-GNU-arm64
             os: ubuntu-latest
             target: "armv7-unknown-linux-gnueabihf"
-            arch: arm64
             args: "--locked --release"
             bin: cardaminal
 
           - release_for: Windows-x86_64
             os: windows-latest
             target: x86_64-pc-windows-msvc
-            arch: amd64
             args: "--locked --release"
             bin: cardaminal.exe
 
           - release_for: macOS-x86_64
             os: macOS-latest
             target: x86_64-apple-darwin
-            arch: amd64
+            args: "--locked --release"
+            bin: cardaminal
+
+          - release_for: macOS-aarch64
+            os: macOS-latest
+            target: aarch64-apple-darwin
             args: "--locked --release"
             bin: cardaminal
 
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: install deps [MacOS]
+        if: matrix.os == 'macOS-latest'
+        run: |
+          brew install openssl@1.1
+
       - name: checkout repository
         uses: actions/checkout@v3
 
@@ -51,7 +57,7 @@ jobs:
       - name: build binary
         uses: houseabsolute/actions-rust-cross@v0
         with:
-          command: both
+          command: build
           target: ${{ matrix.target }}
           args: ${{ matrix.args }}
           strip: true
@@ -63,11 +69,57 @@ jobs:
       - name: upload artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: binary-${{ matrix.release_for }}
+          name: binaries
           path: ${{ matrix.release_for }}-${{ matrix.bin }}
 
-  github_release:
+  docker:
+    runs-on: ubuntu-latest
     needs: [build]
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ghcr.io/txpipe/cardaminal
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern=v{{major}}
+            type=semver,pattern=v{{major}}.{{minor}}
+            type=semver,pattern=v{{version}}
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io/txpipe
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: .github/Dockerfile
+          platforms: linux/arm64,linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  release:
+    needs: [build, docker]
 
     runs-on: ubuntu-latest
 
@@ -94,6 +146,6 @@ jobs:
       - name: create release
         uses: softprops/action-gh-release@v1
         with:
-          files: binary-*/*
+          files: binaries/*
           body_path: RELEASE.md
           draft: true

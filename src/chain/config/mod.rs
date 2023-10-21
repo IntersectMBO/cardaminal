@@ -18,6 +18,7 @@ pub struct Chain {
     pub name: String,
     pub upstream: ChainUpstream,
     pub magic: String,
+    pub address_network_id: u8,
     pub after: Option<ChainAfter>,
 
     #[serde(serialize_with = "serialize_date")]
@@ -28,6 +29,7 @@ impl Chain {
     pub fn try_new(
         name: String,
         magic: String,
+        address_network_id: u8,
         upstream: ChainUpstream,
         after: Option<String>,
     ) -> miette::Result<Self> {
@@ -37,6 +39,7 @@ impl Chain {
         let mut chain = Self {
             version,
             name,
+            address_network_id,
             upstream,
             magic,
             after: None,
@@ -115,6 +118,7 @@ impl TryFrom<&Args> for Chain {
         Self::try_new(
             value.name.clone(),
             value.magic.clone(),
+            value.address_network_id,
             chain_upstream,
             value.after.clone(),
         )

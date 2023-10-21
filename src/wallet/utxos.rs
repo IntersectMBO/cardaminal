@@ -36,7 +36,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let wallet = Wallet::load_config(&ctx.dirs.root_dir, &wallet_name)?
         .ok_or(miette::miette!("wallet doesn't exist"))?;
 
-    let wallet_db = WalletDB::open(&wallet.name, Wallet::dir(&ctx.dirs.root_dir, &wallet.name))
+    let wallet_db = WalletDB::open(&wallet.name, &Wallet::dir(&ctx.dirs.root_dir, &wallet.name))
         .await
         .into_diagnostic()?;
 

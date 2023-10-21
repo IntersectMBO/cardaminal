@@ -22,12 +22,12 @@ pub struct WalletDB {
 }
 
 impl WalletDB {
-    pub async fn open(name: &str, path: PathBuf) -> Result<Self, DbErr> {
+    pub async fn open(name: &String, path: &PathBuf) -> Result<Self, DbErr> {
         let sqlite_url = format!("sqlite:{}/state.sqlite?mode=rwc", path.display()); // TODO
         let db = Database::connect(sqlite_url).await?;
         Ok(Self {
-            name: name.into(),
-            path,
+            name: name.clone(),
+            path: path.clone(),
             conn: db,
         })
     }
