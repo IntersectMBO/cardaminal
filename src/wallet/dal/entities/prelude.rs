@@ -4,3 +4,4 @@ pub use super::protocol_parameters::Entity as ProtocolParameters;
 pub use super::recent_points::Entity as RecentPoints;
 pub use super::tx_history::Entity as TxHistory;
 pub use super::utxo::Entity as Utxo;
+pub use super::utxo::Model as UtxoModel;

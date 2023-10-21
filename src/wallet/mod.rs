@@ -50,6 +50,6 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         }
         Commands::Detach(args) => detach::run(args, ctx).await,
         Commands::History(args) => history::run(args).await,
-        Commands::Utxos(args) => utxos::run(args).await,
+        Commands::Utxos(args) => utxos::run(args, ctx).await,
     }
 }
