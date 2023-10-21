@@ -3,5 +3,6 @@
     "list": "List",
     "attach": "Attach",
     "detach": "Detach",
-    "utxos": "Utxos"
+    "utxos": "Utxos",
+    "balance": "Balance"
 }

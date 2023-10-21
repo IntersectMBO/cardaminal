@@ -165,7 +165,7 @@ impl TryFrom<UtxoModel> for UtxoView {
         let tokens: Vec<(String, u64)> = output
             .non_ada_assets()
             .iter()
-            .map(|p| {
+            .flat_map(|p| {
                 p.assets()
                     .iter()
                     .map(|a| {
@@ -176,7 +176,6 @@ impl TryFrom<UtxoModel> for UtxoView {
                     })
                     .collect::<Vec<(String, u64)>>()
             })
-            .flatten()
             .collect();
 
         let utxo_view = UtxoView {
@@ -186,5 +185,35 @@ impl TryFrom<UtxoModel> for UtxoView {
         };
 
         Ok(utxo_view)
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct BalanceView {
+    pub lovelace: u64,
+    pub tokens: Vec<(String, u64)>,
+}
+impl BalanceView {
+    pub fn new(lovelace: u64) -> Self {
+        Self {
+            lovelace,
+            tokens: Vec::default(),
+        }
+    }
+}
+impl OutputFormatter for BalanceView {
+    fn to_table(&self) {
+        let mut table = Table::new();
+
+        table.set_header(vec!["token", "amount"]);
+
+        table.add_row(vec!["lovelace".to_string(), self.lovelace.to_string()]);
+
+        println!("{table}");
+    }
+
+    fn to_json(&self) {
+        let json = serde_json::to_string_pretty(self).unwrap();
+        println!("{json}");
     }
 }

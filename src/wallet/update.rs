@@ -168,17 +168,12 @@ pub async fn process_block(
 
     let produced_for_wallet = txs
         .iter()
-        .map(|tx| iter::repeat(*tx.hash()).zip(tx.produces()))
-        .flatten()
+        .flat_map(|tx| iter::repeat(*tx.hash()).zip(tx.produces()))
         .map(|(txid, (idx, txo))| (txid, idx, txo, block.slot()))
         .filter(|(_, _, txo, _)| output_controlled_by_pkh(txo, &wallet_pkhs))
         .collect::<Vec<_>>();
 
-    let consumed = txs
-        .iter()
-        .map(|tx| tx.consumes())
-        .flatten()
-        .collect::<Vec<_>>();
+    let consumed = txs.iter().flat_map(|tx| tx.consumes()).collect::<Vec<_>>();
 
     wallet_db
         .insert_utxos(produced_for_wallet)
@@ -220,7 +215,7 @@ pub async fn process_block(
                     .entry(vec![])
                     .or_default() -= txo.lovelace_amount() as i128;
 
-                for asset in txo.non_ada_assets().iter().map(|p| p.assets()).flatten() {
+                for asset in txo.non_ada_assets().iter().flat_map(|p| p.assets()) {
                     *value_deltas
                         .entry(asset.policy().to_vec())
                         .or_default()
@@ -241,7 +236,7 @@ pub async fn process_block(
                     .entry(vec![])
                     .or_default() += output.lovelace_amount() as i128;
 
-                for asset in output.non_ada_assets().iter().map(|p| p.assets()).flatten() {
+                for asset in output.non_ada_assets().iter().flat_map(|p| p.assets()) {
                     *value_deltas
                         .entry(asset.policy().to_vec())
                         .or_default()
