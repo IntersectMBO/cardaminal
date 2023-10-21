@@ -1,4 +1,5 @@
 use chrono::{DateTime, Local, NaiveDate, NaiveDateTime, NaiveTime, TimeZone};
+use pallas::ledger::traverse::Era;
 use serde::{de, Deserialize, Deserializer, Serializer};
 
 pub const DATE_FORMAT: &str = "%Y-%m-%d";
@@ -30,4 +31,13 @@ where
 pub trait OutputFormatter {
     fn to_table(&self);
     fn to_json(&self);
+}
+
+pub fn era_from_int(era: i32) -> Era {
+    match era {
+        0 => Era::Byron,
+        1 => Era::Alonzo,
+        3 => Era::Babbage,
+        _ => unreachable!("unexpected era"),
+    }
 }

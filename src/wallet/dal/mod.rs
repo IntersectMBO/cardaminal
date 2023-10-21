@@ -22,11 +22,11 @@ pub struct WalletDB {
 }
 
 impl WalletDB {
-    pub async fn open(name: &String, path: PathBuf) -> Result<Self, DbErr> {
+    pub async fn open(name: &str, path: PathBuf) -> Result<Self, DbErr> {
         let sqlite_url = format!("sqlite:{}/state.sqlite?mode=rwc", path.display()); // TODO
         let db = Database::connect(sqlite_url).await?;
         Ok(Self {
-            name: name.clone(),
+            name: name.into(),
             path,
             conn: db,
         })
@@ -132,6 +132,13 @@ impl WalletDB {
             .filter(utxo::Column::FullAddress.eq(address.to_vec()))
             .order_by(tx_history::Column::Slot, order.clone())
             .paginate(&self.conn, page_size.unwrap_or(DEFAULT_PAGE_SIZE))
+    }
+
+    pub async fn fetch_all_utxos(&self, order: Order) -> Result<Vec<utxo::Model>, DbErr> {
+        Utxo::find()
+            .order_by(utxo::Column::Slot, order.clone())
+            .all(&self.conn)
+            .await
     }
 
     // Transaction History

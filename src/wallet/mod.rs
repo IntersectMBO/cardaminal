@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use tracing::instrument;
 
 mod attach;
+mod balance;
 mod config;
 mod create;
 mod dal;
@@ -33,6 +34,8 @@ enum Commands {
     History(history::Args),
     /// list current utxos of a wallet
     Utxos(utxos::Args),
+    // show wallet balance
+    Balance(balance::Args),
 }
 
 #[instrument("wallet", skip_all)]
@@ -51,5 +54,6 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::Detach(args) => detach::run(args, ctx).await,
         Commands::History(args) => history::run(args).await,
         Commands::Utxos(args) => utxos::run(args, ctx).await,
+        Commands::Balance(args) => balance::run(args, ctx).await,
     }
 }
