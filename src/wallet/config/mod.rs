@@ -154,13 +154,9 @@ impl TryFrom<UtxoModel> for UtxoView {
     type Error = miette::ErrReport;
 
     fn try_from(value: UtxoModel) -> Result<Self, Self::Error> {
-        // TODO validate if is possible extract this code
-        let era = match value.era {
-            0 => Era::Byron,
-            1 => Era::Alonzo,
-            3 => Era::Babbage,
-            _ => unreachable!("unexpected era"),
-        };
+        let era = Era::try_from(value.era as u16)
+            .into_diagnostic()
+            .context("parsing era")?;
 
         let output = MultiEraOutput::decode(era, &value.cbor).into_diagnostic()?;
 
