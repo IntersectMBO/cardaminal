@@ -6,6 +6,7 @@ pub mod config;
 mod create;
 mod delete;
 mod dump;
+mod info;
 mod list;
 mod sync;
 
@@ -17,6 +18,8 @@ pub struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
+    /// Show info about an existing chain
+    Info(info::Args),
     /// Create a new chain config
     Create(create::Args),
     /// List all chains configued
@@ -34,6 +37,7 @@ enum Commands {
 #[instrument("chain", skip_all)]
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
+        Commands::Info(args) => info::run(args, ctx).await,
         Commands::Create(args) => {
             crate::with_tracing();
             create::run(args, ctx).await
