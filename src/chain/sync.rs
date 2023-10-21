@@ -36,12 +36,21 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
     let mut db = Chain::load_db(&ctx.dirs.root_dir, &args.name)?;
 
-    let points: Vec<_> = db
+    let mut points: Vec<_> = db
         .intersect_options(5)
         .into_diagnostic()?
         .iter()
         .map(|(s, h)| Point::Specific(*s, h.to_vec()))
         .collect();
+
+    // if we have no intersection points, it means the chain db is empty and this is
+    // the first time trying to sync. We need to check if there's some `after` value
+    // set in config and, in that case, avoid starting from origin.
+    if points.is_empty() {
+        if let Some(after) = chain.after {
+            points = vec![Point::Specific(after.slot, after.hash.to_vec())];
+        }
+    }
 
     info!(?points, "intersecting chain");
 

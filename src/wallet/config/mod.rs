@@ -7,11 +7,11 @@ use std::{
 use chrono::{DateTime, Local};
 use comfy_table::Table;
 use miette::{Context, IntoDiagnostic};
-use pallas::ledger::traverse::MultiEraOutput;
+use pallas::ledger::traverse::{Era, MultiEraOutput};
 use serde::{Deserialize, Serialize};
 
 use super::{create::Args, dal::entities::prelude::UtxoModel};
-use crate::utils::{deserialize_date, era_from_int, serialize_date, OutputFormatter};
+use crate::utils::{deserialize_date, serialize_date, OutputFormatter};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Wallet {
@@ -154,8 +154,11 @@ impl TryFrom<UtxoModel> for UtxoView {
     type Error = miette::ErrReport;
 
     fn try_from(value: UtxoModel) -> Result<Self, Self::Error> {
-        let output =
-            MultiEraOutput::decode(era_from_int(value.era), &value.cbor).into_diagnostic()?;
+        let era = Era::try_from(value.era as u16)
+            .into_diagnostic()
+            .context("parsing era")?;
+
+        let output = MultiEraOutput::decode(era, &value.cbor).into_diagnostic()?;
 
         let lovelace = output.lovelace_amount();
         let datum: bool = output.datum().is_some();
