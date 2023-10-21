@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
 use clap::Parser;
-use miette::IntoDiagnostic;
-use pallas::{crypto::hash::Hash, ledger::traverse::MultiEraOutput};
+use miette::{Context, IntoDiagnostic};
+use pallas::{
+    crypto::hash::Hash,
+    ledger::traverse::{Era, MultiEraOutput},
+};
 use sea_orm::Order;
 use tracing::instrument;
 
-use crate::{
-    utils::{era_from_int, OutputFormatter},
-    OutputFormat,
-};
+use crate::{utils::OutputFormatter, OutputFormat};
 
 use super::{
     config::{BalanceView, Wallet},
@@ -46,8 +46,11 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let mut _tokens: HashMap<Hash<28>, HashMap<&[u8], u64>> = HashMap::new();
 
     for utxo in utxos.iter() {
-        let output =
-            MultiEraOutput::decode(era_from_int(utxo.era), &utxo.cbor).into_diagnostic()?;
+        let era = Era::try_from(utxo.era as u16)
+            .into_diagnostic()
+            .context("parsing era")?;
+
+        let output = MultiEraOutput::decode(era, &utxo.cbor).into_diagnostic()?;
         lovelace += output.lovelace_amount();
     }
 
