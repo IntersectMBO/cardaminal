@@ -14,23 +14,39 @@ use super::{create::Args, dal::entities::prelude::UtxoModel};
 use crate::utils::{deserialize_date, serialize_date, OutputFormatter};
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct Addresses {
+    pub mainnet: String,
+    pub testnet: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Keys {
+    pub public: String,
+    pub private_encrypted: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Wallet {
     pub version: String,
     pub name: String,
+    pub keys: Keys,
+    pub addresses: Addresses,
     pub chain: Option<String>,
 
     #[serde(serialize_with = "serialize_date")]
     #[serde(deserialize_with = "deserialize_date")]
     pub created_on: DateTime<Local>,
 }
+
 impl Wallet {
-    pub fn new(name: String, chain: Option<String>) -> Self {
-        // TODO: Get cli version
+    pub fn new(name: String, keys: Keys, addresses: Addresses, chain: Option<String>) -> Self {
         let version = String::from("v1alpha");
 
         Self {
             version,
             name,
+            keys,
+            addresses,
             chain,
             created_on: Local::now(),
         }
@@ -82,11 +98,6 @@ impl Wallet {
         let mut file = fs::File::create(config_path).into_diagnostic()?;
         file.write_all(toml_string.as_bytes()).into_diagnostic()?;
         Ok(())
-    }
-}
-impl From<&Args> for Wallet {
-    fn from(value: &Args) -> Self {
-        Self::new(value.name.clone(), value.chain.clone())
     }
 }
 
