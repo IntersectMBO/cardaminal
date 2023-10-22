@@ -242,7 +242,8 @@ impl WalletDB {
 
     // Rollback
 
-    /// Remove all records from WalletDB created for slots after the specified slot
+    /// Remove all records from WalletDB created for slots after the specified
+    /// slot
     pub async fn rollback_to_slot(&self, slot: u64) -> Result<(), DbErr> {
         let txn = self.conn.begin().await?;
 
