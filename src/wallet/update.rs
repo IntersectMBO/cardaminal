@@ -169,8 +169,8 @@ pub async fn process_block(
     let produced_for_wallet = txs
         .iter()
         .flat_map(|tx| iter::repeat(*tx.hash()).zip(tx.produces()))
-        .map(|(txid, (idx, txo))| (txid, idx, txo, block.slot()))
-        .filter(|(_, _, txo, _)| output_controlled_by_pkh(txo, &wallet_pkhs))
+        .map(|(txid, (idx, txo))| (txid, idx, txo, block.slot(), block.era()))
+        .filter(|(_, _, txo, _, _)| output_controlled_by_pkh(txo, &wallet_pkhs))
         .collect::<Vec<_>>();
 
     let consumed = txs.iter().flat_map(|tx| tx.consumes()).collect::<Vec<_>>();
@@ -200,12 +200,7 @@ pub async fn process_block(
             {
                 involved = true;
 
-                let era = match era {
-                    0 => Era::Byron,
-                    1 => Era::Alonzo,
-                    2 => Era::Babbage,
-                    _ => bail!("unrecognised era in db"),
-                };
+                let era: Era = (*era).try_into().into_diagnostic()?;
 
                 let txo = MultiEraOutput::decode(era, txo_cbor).into_diagnostic()?;
 
