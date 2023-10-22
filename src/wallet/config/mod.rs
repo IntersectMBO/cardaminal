@@ -101,6 +101,30 @@ impl Wallet {
     }
 }
 
+impl OutputFormatter for Wallet {
+    fn to_table(&self) {
+        let mut table = Table::new();
+
+        table.set_header(vec!["property", "value"]);
+
+        table.add_row(vec!["Name", &self.name]);
+        table.add_row(vec![
+            "Chain",
+            &self.chain.as_deref().unwrap_or("not attached"),
+        ]);
+        table.add_row(vec!["Public Key", &self.keys.public]);
+        table.add_row(vec!["Address (mainnet)", &self.addresses.mainnet]);
+        table.add_row(vec!["Address (testnet)", &self.addresses.testnet]);
+
+        println!("{table}");
+    }
+
+    fn to_json(&self) {
+        let json = serde_json::to_string_pretty(self).unwrap();
+        println!("{json}");
+    }
+}
+
 impl OutputFormatter for Vec<Wallet> {
     fn to_table(&self) {
         let mut table = Table::new();
@@ -215,6 +239,7 @@ pub struct BalanceView {
     pub lovelace: u64,
     pub tokens: Vec<(String, u64)>,
 }
+
 impl BalanceView {
     pub fn new(lovelace: u64) -> Self {
         Self {
@@ -223,6 +248,7 @@ impl BalanceView {
         }
     }
 }
+
 impl OutputFormatter for BalanceView {
     fn to_table(&self) {
         let mut table = Table::new();

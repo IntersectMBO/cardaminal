@@ -8,6 +8,7 @@ mod create;
 mod dal;
 mod detach;
 mod history;
+mod info;
 mod keys;
 mod list;
 mod update;
@@ -23,6 +24,8 @@ pub struct Args {
 enum Commands {
     /// create a new wallet
     Create(create::Args),
+    /// show wallet info
+    Info(info::Args),
     /// list available wallets
     List(list::Args),
     /// update wallet state from chain
@@ -35,7 +38,7 @@ enum Commands {
     History(history::Args),
     /// list current utxos of a wallet
     Utxos(utxos::Args),
-    // show wallet balance
+    /// show wallet balance
     Balance(balance::Args),
 }
 
@@ -43,6 +46,7 @@ enum Commands {
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
         Commands::Create(args) => create::run(args, ctx).await,
+        Commands::Info(args) => info::run(args, ctx).await,
         Commands::List(args) => list::run(args, ctx).await,
         Commands::Update(args) => {
             crate::with_tracing();
