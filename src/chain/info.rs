@@ -1,8 +1,6 @@
-use std::fs;
-
 use clap::Parser;
-use miette::{bail, miette, IntoDiagnostic};
-use tracing::{info, instrument};
+use miette::bail;
+use tracing::instrument;
 
 use super::config;
 

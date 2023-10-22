@@ -4,7 +4,7 @@ pub mod migration;
 use std::path::PathBuf;
 
 use pallas::ledger::addresses::{Address, ShelleyPaymentPart};
-use pallas::ledger::traverse::{MultiEraInput, MultiEraOutput};
+use pallas::ledger::traverse::{Era, MultiEraInput, MultiEraOutput};
 use sea_orm::entity::prelude::*;
 use sea_orm::{Condition, Database, Order, Paginator, QueryOrder, SelectModel, TransactionTrait};
 use sea_orm_migration::MigratorTrait;
@@ -40,11 +40,11 @@ impl WalletDB {
 
     pub async fn insert_utxos(
         &self,
-        utxos: Vec<([u8; 32], usize, MultiEraOutput<'_>, u64)>,
+        utxos: Vec<([u8; 32], usize, MultiEraOutput<'_>, u64, Era)>,
     ) -> Result<(), DbErr> {
         let txn = self.conn.begin().await?;
 
-        for (tx_hash, txo_index, txout, slot) in utxos {
+        for (tx_hash, txo_index, txout, slot, era) in utxos {
             let address = txout.address().unwrap();
 
             let address_bytes = address.to_vec();
@@ -59,20 +59,13 @@ impl WalletDB {
                 _ => unimplemented!("cannot store byron address controlled utxos"),
             };
 
-            let era = match txout {
-                MultiEraOutput::Byron(_) => 0,
-                MultiEraOutput::AlonzoCompatible(_) => 1,
-                MultiEraOutput::Babbage(_) => 2,
-                _ => unreachable!("unexpected txout era"),
-            };
-
             let utxo_model = entities::utxo::ActiveModel {
                 tx_hash: sea_orm::ActiveValue::Set(tx_hash.to_vec()),
                 txo_index: sea_orm::ActiveValue::Set(txo_index as i32),
                 payment_cred: sea_orm::ActiveValue::Set(payment_cred.to_vec()),
                 full_address: sea_orm::ActiveValue::Set(address_bytes),
                 slot: sea_orm::ActiveValue::Set(slot as i64),
-                era: sea_orm::ActiveValue::Set(era),
+                era: sea_orm::ActiveValue::Set(era.into()),
                 cbor: sea_orm::ActiveValue::Set(txout.encode()),
                 ..Default::default()
             };
@@ -346,8 +339,8 @@ mod tests {
         let slot_1 = 49503576;
 
         let utxos = vec![
-            (hash_0, index_0, utxo_0, slot_0),
-            (hash_1, index_1, utxo_1, slot_1),
+            (hash_0, index_0, utxo_0, slot_0, Era::Alonzo),
+            (hash_1, index_1, utxo_1, slot_1, Era::Alonzo),
         ];
 
         wallet_db.insert_utxos(utxos).await.unwrap();

@@ -15,7 +15,7 @@ pub struct Model {
     #[sea_orm(column_type = "Binary(BlobSize::Blob(None))")]
     pub full_address: Vec<u8>,
     pub slot: i64,
-    pub era: i32,
+    pub era: u16,
     #[sea_orm(column_type = "Binary(BlobSize::Blob(None))")]
     pub cbor: Vec<u8>,
 }
