@@ -117,15 +117,18 @@ impl OutputFormatter for Vec<Wallet> {
 
 #[derive(Debug, Serialize)]
 pub struct UtxoView {
+    pub tx_hash: String,
+    pub txo_index: i32,
     pub lovelace: u64,
     pub datum: bool,
     pub tokens: Vec<(String, u64)>,
 }
+
 impl OutputFormatter for Vec<UtxoView> {
     fn to_table(&self) {
         let mut table = Table::new();
 
-        table.set_header(vec!["amount", "datum", "tokens"]);
+        table.set_header(vec!["tx hash", "txo index", "lovelace", "datum", "tokens"]);
 
         for utxo in self {
             let tokens = utxo
@@ -136,6 +139,8 @@ impl OutputFormatter for Vec<UtxoView> {
                 .join("\n");
 
             table.add_row(vec![
+                &utxo.tx_hash,
+                &utxo.txo_index.to_string(),
                 &utxo.lovelace.to_string(),
                 &utxo.datum.to_string(),
                 &tokens,
@@ -150,6 +155,7 @@ impl OutputFormatter for Vec<UtxoView> {
         println!("{json}");
     }
 }
+
 impl TryFrom<UtxoModel> for UtxoView {
     type Error = miette::ErrReport;
 
@@ -160,12 +166,15 @@ impl TryFrom<UtxoModel> for UtxoView {
 
         let output = MultiEraOutput::decode(era, &value.cbor).into_diagnostic()?;
 
+        let tx_hash = hex::encode(value.tx_hash);
+        let txo_index = value.txo_index;
+
         let lovelace = output.lovelace_amount();
         let datum: bool = output.datum().is_some();
         let tokens: Vec<(String, u64)> = output
             .non_ada_assets()
             .iter()
-            .map(|p| {
+            .flat_map(|p| {
                 p.assets()
                     .iter()
                     .map(|a| {
@@ -176,15 +185,46 @@ impl TryFrom<UtxoModel> for UtxoView {
                     })
                     .collect::<Vec<(String, u64)>>()
             })
-            .flatten()
             .collect();
 
         let utxo_view = UtxoView {
+            tx_hash,
+            txo_index,
             lovelace,
             datum,
             tokens,
         };
 
         Ok(utxo_view)
+    }
+}
+
+#[derive(Debug, Serialize)]
+pub struct BalanceView {
+    pub lovelace: u64,
+    pub tokens: Vec<(String, u64)>,
+}
+impl BalanceView {
+    pub fn new(lovelace: u64) -> Self {
+        Self {
+            lovelace,
+            tokens: Vec::default(),
+        }
+    }
+}
+impl OutputFormatter for BalanceView {
+    fn to_table(&self) {
+        let mut table = Table::new();
+
+        table.set_header(vec!["token", "amount"]);
+
+        table.add_row(vec!["lovelace".to_string(), self.lovelace.to_string()]);
+
+        println!("{table}");
+    }
+
+    fn to_json(&self) {
+        let json = serde_json::to_string_pretty(self).unwrap();
+        println!("{json}");
     }
 }

@@ -127,6 +127,13 @@ impl WalletDB {
             .paginate(&self.conn, page_size.unwrap_or(DEFAULT_PAGE_SIZE))
     }
 
+    pub async fn fetch_all_utxos(&self, order: Order) -> Result<Vec<utxo::Model>, DbErr> {
+        Utxo::find()
+            .order_by(utxo::Column::Slot, order.clone())
+            .all(&self.conn)
+            .await
+    }
+
     // Transaction History
 
     // TODO: balance type
