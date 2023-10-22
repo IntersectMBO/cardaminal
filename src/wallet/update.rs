@@ -256,14 +256,14 @@ pub async fn process_block(
             }
         */
 
-        let lovelace_delta = value_deltas
-            .remove(&vec![])
-            .unwrap()
-            .remove(&vec![])
-            .unwrap();
-
         // add history entry
         if involved {
+            let lovelace_delta = value_deltas
+                .remove(&vec![])
+                .unwrap()
+                .remove(&vec![])
+                .unwrap();
+
             // TODO: value delta stored in WalletDB is currently just lovelace
             // I was going to include value delta as CBOR encoding of a Value
             // object, but Value can only hold u64, whereas we need negative
