@@ -117,15 +117,18 @@ impl OutputFormatter for Vec<Wallet> {
 
 #[derive(Debug, Serialize)]
 pub struct UtxoView {
+    pub tx_hash: String,
+    pub txo_index: i32,
     pub lovelace: u64,
     pub datum: bool,
     pub tokens: Vec<(String, u64)>,
 }
+
 impl OutputFormatter for Vec<UtxoView> {
     fn to_table(&self) {
         let mut table = Table::new();
 
-        table.set_header(vec!["amount", "datum", "tokens"]);
+        table.set_header(vec!["tx hash", "txo index", "lovelace", "datum", "tokens"]);
 
         for utxo in self {
             let tokens = utxo
@@ -136,6 +139,8 @@ impl OutputFormatter for Vec<UtxoView> {
                 .join("\n");
 
             table.add_row(vec![
+                &utxo.tx_hash,
+                &utxo.txo_index.to_string(),
                 &utxo.lovelace.to_string(),
                 &utxo.datum.to_string(),
                 &tokens,
@@ -150,6 +155,7 @@ impl OutputFormatter for Vec<UtxoView> {
         println!("{json}");
     }
 }
+
 impl TryFrom<UtxoModel> for UtxoView {
     type Error = miette::ErrReport;
 
@@ -159,6 +165,9 @@ impl TryFrom<UtxoModel> for UtxoView {
             .context("parsing era")?;
 
         let output = MultiEraOutput::decode(era, &value.cbor).into_diagnostic()?;
+
+        let tx_hash = hex::encode(value.tx_hash);
+        let txo_index = value.txo_index;
 
         let lovelace = output.lovelace_amount();
         let datum: bool = output.datum().is_some();
@@ -179,6 +188,8 @@ impl TryFrom<UtxoModel> for UtxoView {
             .collect();
 
         let utxo_view = UtxoView {
+            tx_hash,
+            txo_index,
             lovelace,
             datum,
             tokens,
