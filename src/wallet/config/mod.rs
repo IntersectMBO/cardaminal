@@ -10,7 +10,7 @@ use miette::{Context, IntoDiagnostic};
 use pallas::ledger::traverse::{Era, MultiEraOutput};
 use serde::{Deserialize, Serialize};
 
-use super::{create::Args, dal::entities::prelude::UtxoModel};
+use super::dal::entities::prelude::UtxoModel;
 use crate::utils::{deserialize_date, serialize_date, OutputFormatter};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -195,7 +195,7 @@ impl TryFrom<UtxoModel> for UtxoView {
     type Error = miette::ErrReport;
 
     fn try_from(value: UtxoModel) -> Result<Self, Self::Error> {
-        let era = Era::try_from(value.era as u16)
+        let era = Era::try_from(value.era)
             .into_diagnostic()
             .context("parsing era")?;
 

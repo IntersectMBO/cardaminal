@@ -46,7 +46,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let mut _tokens: HashMap<Hash<28>, HashMap<&[u8], u64>> = HashMap::new();
 
     for utxo in utxos.iter() {
-        let era = Era::try_from(utxo.era as u16)
+        let era = Era::try_from(utxo.era)
             .into_diagnostic()
             .context("parsing era")?;
 
