@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fs, iter};
+use std::{collections::HashMap, iter};
 
 use clap::Parser;
 use indicatif::ProgressStyle;
@@ -304,10 +304,10 @@ pub async fn process_block(
     Ok(())
 }
 
-fn output_controlled_by_pkh(txo: &MultiEraOutput<'_>, pkhs: &Vec<[u8; 28]>) -> bool {
+fn output_controlled_by_pkh(txo: &MultiEraOutput<'_>, pkhs: &[[u8; 28]]) -> bool {
     let controlling_pkh = match txo.address().unwrap() {
         Address::Shelley(a) => match a.payment() {
-            ShelleyPaymentPart::Key(h) => h.clone(),
+            ShelleyPaymentPart::Key(h) => *h,
             _ => return false,
         },
         _ => return false,

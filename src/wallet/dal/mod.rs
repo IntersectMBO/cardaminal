@@ -1,7 +1,7 @@
 pub mod entities;
 pub mod migration;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use pallas::ledger::addresses::{Address, ShelleyPaymentPart};
 use pallas::ledger::traverse::{Era, MultiEraInput, MultiEraOutput};
@@ -22,12 +22,13 @@ pub struct WalletDB {
 }
 
 impl WalletDB {
-    pub async fn open(name: &String, path: &PathBuf) -> Result<Self, DbErr> {
+    pub async fn open(name: &str, path: &Path) -> Result<Self, DbErr> {
         let sqlite_url = format!("sqlite:{}/state.sqlite?mode=rwc", path.display()); // TODO
         let db = Database::connect(sqlite_url).await?;
+
         Ok(Self {
-            name: name.clone(),
-            path: path.clone(),
+            name: name.to_owned(),
+            path: path.to_path_buf(),
             conn: db,
         })
     }
@@ -115,6 +116,7 @@ impl WalletDB {
             .paginate(&self.conn, page_size.unwrap_or(DEFAULT_PAGE_SIZE))
     }
 
+    #[allow(unused)]
     pub async fn paginate_utxos_for_address(
         &self,
         address: Address,
@@ -406,7 +408,7 @@ mod tests {
             .remove_utxos(
                 to_remove
                     .iter()
-                    .map(|i| MultiEraInput::from_alonzo_compatible(i))
+                    .map(MultiEraInput::from_alonzo_compatible)
                     .collect(),
             )
             .await

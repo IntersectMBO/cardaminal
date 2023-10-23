@@ -79,6 +79,7 @@ pub fn encrypt_privkey(password: &String, data: [u8; 32]) -> Vec<u8> {
     out
 }
 
+#[allow(unused)]
 pub fn decrypt_privkey(password: &String, data: Vec<u8>) -> Result<PrivateKey, ()> {
     // TODO
     assert_eq!(
@@ -105,16 +106,16 @@ pub fn decrypt_privkey(password: &String, data: Vec<u8>) -> Result<PrivateKey, (
     let sym_key: [u8; 32] = argon2::argon2(
         &argon2::Params::argon2d().iterations(ITERATIONS).unwrap(),
         password.as_bytes(),
-        &salt,
+        salt,
         &[],
         &[],
     );
 
-    let mut chacha20 = ChaCha20Poly1305::new(&sym_key, &nonce, &[]);
+    let mut chacha20 = ChaCha20Poly1305::new(&sym_key, nonce, &[]);
 
     let mut plaintext = [0u8; DATA_SIZE];
 
-    if chacha20.decrypt(&ciphertext, &mut plaintext, &tag) {
+    if chacha20.decrypt(ciphertext, &mut plaintext, tag) {
         Ok(plaintext)
     } else {
         Err(())
