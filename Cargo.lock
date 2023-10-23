@@ -587,7 +587,7 @@ dependencies = [
 
 [[package]]
 name = "cardaminal"
-version = "1.0.0-alpha.1"
+version = "1.0.0-alpha.2"
 dependencies = [
  "cardano-multiplatform-lib",
  "chrono",
