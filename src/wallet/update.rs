@@ -2,7 +2,7 @@ use std::{collections::HashMap, fs, iter};
 
 use clap::Parser;
 use indicatif::ProgressStyle;
-use miette::{bail, IntoDiagnostic};
+use miette::{bail, miette, Context, IntoDiagnostic};
 use pallas::{
     codec::minicbor,
     crypto::hash::Hash,
@@ -54,13 +54,14 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         bail!("could not find a wallet named '{}'", &args.wallet)
     }
 
-    let wallet_pkh: [u8; 28] = match fs::read(wallet_path.join("pkh.pub"))
-        .into_diagnostic()?
+    let wallet = Wallet::load_config(&ctx.dirs.root_dir, &args.wallet)?
+        .ok_or(miette!("wallet not found"))?;
+
+    let wallet_pkh: [u8; 28] = hex::decode(wallet.keys.public)
+        .into_diagnostic()
+        .context("parsing public key hex")?
         .try_into()
-    {
-        Ok(h) => h,
-        Err(_) => bail!("malformed pubkeyhash file"),
-    };
+        .map_err(|_| miette!("invalid public key"))?;
 
     let wallet_db = WalletDB::open(&args.wallet, &wallet_path)
         .await
