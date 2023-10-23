@@ -307,7 +307,7 @@ mod tests {
 
     #[tokio::test]
     async fn insert_utxos() {
-        let sqlite_url = format!("sqlite:/tmp/test_utxos.sqlite?mode=rwc");
+        let sqlite_url = format!("sqlite:/tmp/test_insert_utxos.sqlite?mode=rwc");
         let db = Database::connect(&sqlite_url).await.unwrap();
 
         let wallet_db = WalletDB {
@@ -364,15 +364,19 @@ mod tests {
         assert_eq!(now_utxos[0].slot, 49503576);
         assert_eq!(now_utxos[1].txo_index, 3);
         assert_eq!(now_utxos[1].slot, 49503576);
+
+        drop(wallet_db);
+
+        std::fs::remove_file("/tmp/test_insert_utxos.sqlite").unwrap();
     }
 
     #[tokio::test]
     async fn remove_utxos() {
-        let sqlite_url = format!("sqlite:/tmp/test_utxos.sqlite?mode=rwc");
+        let sqlite_url = format!("sqlite:/tmp/test_remove_utxos.sqlite?mode=rwc");
         let db = Database::connect(&sqlite_url).await.unwrap();
 
         let wallet_db = WalletDB {
-            name: "test_insert_utxos".into(),
+            name: "test_remove_utxos".into(),
             path: sqlite_url.into(),
             conn: db,
         };
@@ -414,6 +418,10 @@ mod tests {
             .await
             .unwrap();
 
-        assert!(now_utxos.is_empty())
+        assert!(now_utxos.is_empty());
+
+        drop(wallet_db);
+
+        std::fs::remove_file("/tmp/test_remove_utxos.sqlite").unwrap();
     }
 }
