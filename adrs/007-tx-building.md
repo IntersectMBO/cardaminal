@@ -37,7 +37,7 @@ cardaminal transaction list
 --status <STATUS>       only return transactions with the specified status
 ```
 
-**Returns:** list of transactions in the staging area, with information such as chain, when the transaction was last updated, status (building, signing, submitted) (+ seen, confirmed?), and potentially other useful information.
+**Returns:** list of transactions in the staging area, with information such as chain, when the transaction was last updated, status (building, signing, submitted, ...), and potentially other useful information.
 
 ### Import transaction
 
@@ -68,7 +68,7 @@ Remove a transaction from the transaction staging area.
 cardaminal transaction delete <TX_ID>
 ```
 
-### Inspect transaction (?)
+### Inspect transaction
 
 Return detailed information on a specific transaction in the staging area.
 
@@ -128,7 +128,7 @@ Remove a reference input from a transaction.
 cardaminal transaction reference-input remove <TX_ID> <UTXO_HASH> <UTXO_IDX>
 ```
 
-### Remove reference input
+### List reference inputs
 
 List the reference inputs of a transaction.
 
