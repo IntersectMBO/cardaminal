@@ -39,26 +39,6 @@ cardaminal transaction list
 
 **Returns:** list of transactions in the staging area, with information such as chain, when the transaction was last updated, status (building, signing, submitted, ...), and potentially other useful information.
 
-### Import transaction
-
-Import a transaction into Cardaminal. For now we will only support importing transactions exported from Cardaminal.
-
-**Usage:**
-```
-cardaminal transaction import <FILE>
-```
-
-**Returns:** the unique identifier for the imported transaction, used to specify which transaction in the staging area you wish to issue build commands against.
-
-### Export transaction
-
-Export a transaction from Cardaminal, allowing it to be sent and imported elsewhere to continue the building and signing process.
-
-**Usage:**
-```
-cardaminal transaction export <TX_ID> <PATH>
-```
-
 ### Delete transaction
 
 Remove a transaction from the transaction staging area.
@@ -99,17 +79,6 @@ Remove an input from a transaction.
 cardaminal transaction input remove <TX_ID> <UTXO_HASH> <UTXO_IDX>
 ```
 
-### List inputs
-
-List the inputs of a transaction.
-
-**Usage:**
-```
-cardaminal transaction input list <TX_ID>
-```
-
-**Returns:** list UTxO identifiers of the transaction inputs
-
 ### Add reference input
 
 Add a reference input to a transaction.
@@ -127,17 +96,6 @@ Remove a reference input from a transaction.
 ```
 cardaminal transaction reference-input remove <TX_ID> <UTXO_HASH> <UTXO_IDX>
 ```
-
-### List reference inputs
-
-List the reference inputs of a transaction.
-
-**Usage:**
-```
-cardaminal transaction reference-input list <TX_ID>
-```
-
-**Returns:** list UTxO identifiers of the transaction reference inputs
 
 ### Add output
 
@@ -280,17 +238,6 @@ Remove an input from a transaction.
 cardaminal transaction collateral-input remove <TX_ID> <UTXO_HASH> <UTXO_IDX>
 ```
 
-### List collateral inputs
-
-List the collateral inputs of a transaction.
-
-**Usage:**
-```
-cardaminal transaction collateral-input list <TX_ID>
-```
-
-**Returns:** list UTxO identifiers of the transaction collateral inputs
-
 ### Set collateral return
 
 Set the collateral return output of a transaction.
@@ -327,15 +274,6 @@ Remove a public key hash from the required signers set of a transaction.
 cardaminal transaction disclosed-signer remove <TX_ID> <PUBKEYHASH>
 ```
 
-### List disclosed signers
-
-List the required signers set of a transaction.
-
-**Usage:**
-```
-cardaminal transaction disclosed-signer list <TX_ID>
-```
-
 ### Add script
 
 Add a native or Plutus script to a transaction (witness set).
@@ -356,15 +294,6 @@ Remove a script from a transaction (witness set).
 cardaminal transaction script remove <TX_ID> <SCRIPT_HASH>
 ```
 
-### List scripts
-
-List the scripts in a transaction's witness set (does not include reference scripts).
-
-**Usage:**
-```
-cardaminal transaction script list <TX_ID>
-```
-
 ### Add datum
 
 Add a datum to a transaction (witness set).
@@ -383,15 +312,6 @@ Remove a datum from a transaction (witness set).
 **Usage:**
 ```
 cardaminal transaction datum remove <TX_ID> <DATUM_HASH>
-```
-
-### List datums
-
-List the datums in a transaction's witness set.
-
-**Usage:**
-```
-cardaminal transaction datum list <TX_ID>
 ```
 
 ### Add redeemer
@@ -492,19 +412,6 @@ Sign a transaction using a Cardaminal wallet.
 ```
 cardaminal transaction sign <TX_ID> <WALLET_NAME>
 ```
-
-
-
-### List transaction signatures
-
-List the signatures of a built transaction.
-
-**Usage:**
-```
-cardaminal transaction signatures list <TX_ID>
-```
-
-**Returns:** signatures attached to the transaction as a map of public keys to signatures.
 
 ### Add transaction signature
 
