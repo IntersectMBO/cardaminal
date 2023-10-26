@@ -244,7 +244,7 @@ Set the collateral return output of a transaction.
 
 **Usage:**
 ```
-cardaminal transaction network set <TX_ID> <NETWORK_ID>
+cardaminal transaction collateral-return set <TX_ID> <ADDRESS> <LOVELACE>
 ```
 
 ### Remove collateral return
@@ -253,7 +253,7 @@ Clear/remove the network ID of a transaction.
 
 **Usage:**
 ```
-cardaminal transaction network clear <TX_ID>
+cardaminal transaction collateral-return clear <TX_ID>
 ```
 
 ### Add disclosed signer (required signer)
