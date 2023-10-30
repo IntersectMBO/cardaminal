@@ -71,6 +71,8 @@ enum Commands {
     OverrideSignersAmount(overridesignersamount::Args),
     /// manage change address
     ChangeAddress(changeaddress::Args),
+    /// build/finalize a transaction in the staging area so that it is ready for signatures to be attached
+    Build(build::Args),
 }
 
 #[instrument("transaction", skip_all)]
@@ -95,5 +97,6 @@ pub async fn run(args: Args) -> miette::Result<()> {
         Commands::Redeemer(args) => redeemer::run(args).await,
         Commands::OverrideSignersAmount(args) => overridesignersamount::run(args).await,
         Commands::ChangeAddress(args) => changeaddress::run(args).await,
+        Commands::Build(args) => build::run(args).await,
     }
 }
