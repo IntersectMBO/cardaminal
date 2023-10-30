@@ -8,7 +8,7 @@ pub struct Args {
     /// utxo hash
     utxo_hash: String,
     /// utxo idx
-    utxo_idx: String,
+    utxo_idx: u16,
 }
 
 #[instrument("add", skip_all, fields())]
