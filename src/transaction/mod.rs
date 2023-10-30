@@ -34,13 +34,13 @@ pub struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// create a new empty transaction in the transaction staging area for the specified chain.
+    /// create a new empty transaction in the transaction staging area for the specified chain
     Create(create::Args),
-    /// list transactions which are in the staging area, along with some information summary regarding the transaction.
+    /// list transactions which are in the staging area, along with some information summary regarding the transaction
     List(list::Args),
-    /// remove a transaction from the transaction staging area.
+    /// remove a transaction from the transaction staging area
     Delete(delete::Args),
-    /// detailed information on a specific transaction in the staging area.
+    /// detailed information on a specific transaction in the staging area
     Inspect(inspect::Args),
     /// build/finalize a transaction in the staging area so that it is ready for signatures to be attached
     Build(build::Args),
