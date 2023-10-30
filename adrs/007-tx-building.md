@@ -222,7 +222,7 @@ cardaminal transaction network clear <TX_ID>
 
 ### Add collateral input
 
-Add an input to a transaction.
+Add an collateral input to a transaction.
 
 **Usage:**
 ```
@@ -231,29 +231,29 @@ cardaminal transaction collateral-input add <TX_ID> <UTXO_HASH> <UTXO_IDX>
 
 ### Remove collateral input
 
-Remove an input from a transaction.
+Remove an collateral input from a transaction.
 
 **Usage:**
 ```
 cardaminal transaction collateral-input remove <TX_ID> <UTXO_HASH> <UTXO_IDX>
 ```
 
-### Set collateral return
+### Set collateral output
 
-Set the collateral return output of a transaction.
-
-**Usage:**
-```
-cardaminal transaction collateral-return set <TX_ID> <ADDRESS> <LOVELACE>
-```
-
-### Remove collateral return
-
-Clear/remove the network ID of a transaction.
+Set the collateral output of a transaction.
 
 **Usage:**
 ```
-cardaminal transaction collateral-return clear <TX_ID>
+cardaminal transaction collateral-output set <TX_ID> <ADDRESS> <LOVELACE>
+```
+
+### Remove collateral output
+
+Clear/remove the collateral output of a transaction.
+
+**Usage:**
+```
+cardaminal transaction collateral-output clear <TX_ID>
 ```
 
 ### Add disclosed signer (required signer)
@@ -411,6 +411,12 @@ Sign a transaction using a Cardaminal wallet.
 **Usage:**
 ```
 cardaminal transaction sign <TX_ID> <WALLET_NAME>
+```
+
+**Flags:**
+```
+--password wallet password to sign
+--interactive use interactive mode
 ```
 
 ### Add transaction signature
