@@ -22,6 +22,7 @@ mod redeemer;
 mod referenceinput;
 mod script;
 mod sign;
+mod signatures;
 mod submit;
 mod ttl;
 
@@ -75,6 +76,8 @@ enum Commands {
     Build(build::Args),
     /// sign a transaction using a Cardaminal wallet
     Sign(sign::Args),
+    /// manage signatures
+    Signatures(signatures::Args),
 }
 
 #[instrument("transaction", skip_all)]
@@ -101,5 +104,6 @@ pub async fn run(args: Args) -> miette::Result<()> {
         Commands::ChangeAddress(args) => changeaddress::run(args).await,
         Commands::Build(args) => build::run(args).await,
         Commands::Sign(args) => sign::run(args).await,
+        Commands::Signatures(args) => signatures::run(args).await,
     }
 }
