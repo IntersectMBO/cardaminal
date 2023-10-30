@@ -16,6 +16,7 @@ mod mint;
 mod model;
 mod network;
 mod output;
+mod overridesignersamount;
 mod redeemer;
 mod referenceinput;
 mod script;
@@ -65,6 +66,8 @@ enum Commands {
     Datum(datum::Args),
     /// manage redeemer
     Redeemer(redeemer::Args),
+    /// manage override signers amount
+    OverrideSignersAmount(overridesignersamount::Args),
 }
 
 #[instrument("transaction", skip_all)]
@@ -87,5 +90,6 @@ pub async fn run(args: Args) -> miette::Result<()> {
         Commands::Script(args) => script::run(args).await,
         Commands::Datum(args) => datum::run(args).await,
         Commands::Redeemer(args) => redeemer::run(args).await,
+        Commands::OverrideSignersAmount(args) => overridesignersamount::run(args).await,
     }
 }
