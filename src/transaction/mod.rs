@@ -16,6 +16,7 @@ mod mint;
 mod model;
 mod network;
 mod output;
+mod redeemer;
 mod referenceinput;
 mod script;
 mod sign;
@@ -62,6 +63,8 @@ enum Commands {
     Script(script::Args),
     /// manage datum
     Datum(datum::Args),
+    /// manage redeemer
+    Redeemer(redeemer::Args),
 }
 
 #[instrument("transaction", skip_all)]
@@ -83,5 +86,6 @@ pub async fn run(args: Args) -> miette::Result<()> {
         Commands::DisclosedSigner(args) => disclosedsigner::run(args).await,
         Commands::Script(args) => script::run(args).await,
         Commands::Datum(args) => datum::run(args).await,
+        Commands::Redeemer(args) => redeemer::run(args).await,
     }
 }
