@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use tracing::instrument;
 
+mod build;
 mod collateralinput;
 mod collateraloutput;
 mod create;
@@ -12,10 +13,13 @@ mod input;
 mod inspect;
 mod list;
 mod mint;
+mod model;
 mod network;
 mod output;
 mod referenceinput;
 mod script;
+mod sign;
+mod submit;
 mod ttl;
 
 #[derive(Parser)]
