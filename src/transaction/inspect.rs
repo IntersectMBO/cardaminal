@@ -2,9 +2,12 @@ use clap::Parser;
 use tracing::instrument;
 
 #[derive(Parser)]
-pub struct Args {}
+pub struct Args {
+    /// transaction id
+    tx_id: String,
+}
 
-#[instrument("inspect", skip_all, fields())]
-pub async fn run(_args: Args) -> miette::Result<()> {
+#[instrument("inspect", skip_all, fields(tx_id=args.tx_id))]
+pub async fn run(args: Args) -> miette::Result<()> {
     Ok(())
 }
