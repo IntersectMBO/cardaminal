@@ -42,6 +42,12 @@ enum Commands {
     Delete(delete::Args),
     /// detailed information on a specific transaction in the staging area.
     Inspect(inspect::Args),
+    /// build/finalize a transaction in the staging area so that it is ready for signatures to be attached
+    Build(build::Args),
+    /// sign a transaction using a Cardaminal wallet
+    Sign(sign::Args),
+    /// submit a transaction to cardano node
+    Submit(submit::Args),
     /// manage inputs
     Input(input::Args),
     /// manage reference inputs
@@ -74,12 +80,6 @@ enum Commands {
     ChangeAddress(changeaddress::Args),
     /// manage signatures
     Signatures(signatures::Args),
-    /// build/finalize a transaction in the staging area so that it is ready for signatures to be attached
-    Build(build::Args),
-    /// sign a transaction using a Cardaminal wallet
-    Sign(sign::Args),
-    /// submit a transaction to cardano node
-    Submit(submit::Args),
 }
 
 #[instrument("transaction", skip_all)]
