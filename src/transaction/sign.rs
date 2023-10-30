@@ -14,8 +14,14 @@ pub fn gather_inputs() -> miette::Result<()> {
 
 #[derive(Parser)]
 pub struct Args {
-    /// the file with the pending tx
-    file: String,
+    /// transaction id
+    tx_id: String,
+    /// wallet name
+    wallet: String,
+
+    /// wallet password for signature
+    #[arg(long, short, action)]
+    password: Option<String>,
     /// use interactive mode
     #[arg(long, short, action)]
     interactive: bool,

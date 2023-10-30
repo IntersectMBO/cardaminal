@@ -73,6 +73,8 @@ enum Commands {
     ChangeAddress(changeaddress::Args),
     /// build/finalize a transaction in the staging area so that it is ready for signatures to be attached
     Build(build::Args),
+    /// sign a transaction using a Cardaminal wallet
+    Sign(sign::Args),
 }
 
 #[instrument("transaction", skip_all)]
@@ -98,5 +100,6 @@ pub async fn run(args: Args) -> miette::Result<()> {
         Commands::OverrideSignersAmount(args) => overridesignersamount::run(args).await,
         Commands::ChangeAddress(args) => changeaddress::run(args).await,
         Commands::Build(args) => build::run(args).await,
+        Commands::Sign(args) => sign::run(args).await,
     }
 }
