@@ -3,6 +3,7 @@ use tracing::instrument;
 
 mod build;
 mod edit;
+mod model;
 mod sign;
 mod submit;
 
