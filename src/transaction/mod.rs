@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 use tracing::instrument;
 
 mod build;
+mod changeaddress;
 mod collateralinput;
 mod collateraloutput;
 mod create;
@@ -68,6 +69,8 @@ enum Commands {
     Redeemer(redeemer::Args),
     /// manage override signers amount
     OverrideSignersAmount(overridesignersamount::Args),
+    /// manage change address
+    ChangeAddress(changeaddress::Args),
 }
 
 #[instrument("transaction", skip_all)]
@@ -91,5 +94,6 @@ pub async fn run(args: Args) -> miette::Result<()> {
         Commands::Datum(args) => datum::run(args).await,
         Commands::Redeemer(args) => redeemer::run(args).await,
         Commands::OverrideSignersAmount(args) => overridesignersamount::run(args).await,
+        Commands::ChangeAddress(args) => changeaddress::run(args).await,
     }
 }
