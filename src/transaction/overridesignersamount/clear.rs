@@ -7,7 +7,7 @@ pub struct Args {
     tx_id: String,
 }
 
-#[instrument("build", skip_all)]
+#[instrument("clear", skip_all, fields())]
 pub async fn run(_args: Args) -> miette::Result<()> {
     Ok(())
 }

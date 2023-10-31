@@ -5,11 +5,13 @@ use tracing::{info, instrument};
 
 #[derive(Parser)]
 pub struct Args {
-    /// the file with the pending tx
-    file: String,
+    /// transaction id
+    tx_id: String,
+    /// chain name
+    chain: String,
 }
 
-#[instrument("submit", skip_all, fields(file=args.file))]
+#[instrument("submit", skip_all, fields(tx_id=args.tx_id, chain=args.chain))]
 pub async fn run(args: Args) -> miette::Result<()> {
     // TODO: check all parameters available
     info!("submitting");
