@@ -1,8 +1,8 @@
 use clap::{Parser, Subcommand};
 use tracing::instrument;
 
-mod set;
 mod clear;
+mod set;
 
 #[derive(Parser)]
 pub struct Args {

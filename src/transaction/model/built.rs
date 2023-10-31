@@ -1,11 +1,7 @@
-use core::fmt;
 use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use serde::{
-    de::{self, Visitor},
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{Deserialize, Serialize};
 
 use super::{Bytes, TransactionStatus, TxHash};
 
@@ -20,47 +16,7 @@ struct BuiltTransaction {
 }
 
 #[derive(Hash, PartialEq, Eq, Debug)]
-struct Bytes64([u8; 64]);
-
-impl Serialize for Bytes64 {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&hex::encode(&self.0))
-    }
-}
-
-impl<'de> Deserialize<'de> for Bytes64 {
-    fn deserialize<D>(deserializer: D) -> Result<Bytes64, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_str(Bytes64Visitor)
-    }
-}
-
-struct Bytes64Visitor;
-
-impl<'de> Visitor<'de> for Bytes64Visitor {
-    type Value = Bytes64;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("64 bytes hex encoded")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: de::Error,
-    {
-        Ok(Bytes64(
-            hex::decode(v)
-                .map_err(|_| E::custom("invalid hex"))?
-                .try_into()
-                .map_err(|_| E::custom("invalid length"))?,
-        ))
-    }
-}
+pub struct Bytes64(pub [u8; 64]);
 
 type PublicKey = Bytes64;
 type Signature = Bytes64;

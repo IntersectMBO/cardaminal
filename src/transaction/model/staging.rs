@@ -1,15 +1,10 @@
-use core::fmt;
 use pallas::ledger::addresses::Address as PallasAddress;
-use std::{collections::HashMap, str::FromStr};
+use std::collections::HashMap;
 
 use chrono::{DateTime, Utc};
-use serde::{
-    de::{self, Visitor},
-    ser::SerializeMap,
-    Deserialize, Deserializer, Serialize, Serializer,
-};
+use serde::{Deserialize, Serialize};
 
-use super::{Bytes, Hash28, Hash32, TransactionStatus, TxHash};
+use super::{Bytes, Hash28, TransactionStatus, TxHash};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 struct StagingTransaction {
@@ -57,120 +52,10 @@ struct Output {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-struct OutputAssets(HashMap<PolicyId, HashMap<AssetName, u64>>);
-
-impl Serialize for OutputAssets {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut map = serializer.serialize_map(Some(self.0.len()))?;
-
-        for (policy, assets) in self.0.iter() {
-            let mut assets_map: HashMap<String, u64> = HashMap::new();
-
-            for (asset, amount) in assets {
-                assets_map.insert(hex::encode(&asset.0), *amount);
-            }
-
-            map.serialize_entry(policy, &assets_map)?;
-        }
-
-        map.end()
-    }
-}
-
-impl<'de> Deserialize<'de> for OutputAssets {
-    fn deserialize<D>(deserializer: D) -> Result<OutputAssets, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_map(OutputAssetsVisitor)
-    }
-}
-
-struct OutputAssetsVisitor;
-
-impl<'de> Visitor<'de> for OutputAssetsVisitor {
-    type Value = OutputAssets;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str(
-            "map of hex encoded policy ids to map of hex encoded asset names to u64 amounts",
-        )
-    }
-
-    fn visit_map<A>(self, mut access: A) -> Result<Self::Value, A::Error>
-    where
-        A: de::MapAccess<'de>,
-    {
-        let mut out_map = HashMap::new();
-
-        while let Some((key, value)) = access.next_entry()? {
-            out_map.insert(key, value);
-        }
-
-        Ok(OutputAssets(out_map))
-    }
-}
+pub struct OutputAssets(pub HashMap<PolicyId, HashMap<AssetName, u64>>);
 
 #[derive(PartialEq, Eq, Debug)]
-struct MintAssets(HashMap<PolicyId, HashMap<AssetName, i64>>);
-
-impl Serialize for MintAssets {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut map = serializer.serialize_map(Some(self.0.len()))?;
-
-        for (policy, assets) in self.0.iter() {
-            let mut assets_map: HashMap<String, i64> = HashMap::new();
-
-            for (asset, amount) in assets {
-                assets_map.insert(hex::encode(&asset.0), *amount);
-            }
-
-            map.serialize_entry(policy, &assets_map)?;
-        }
-
-        map.end()
-    }
-}
-
-impl<'de> Deserialize<'de> for MintAssets {
-    fn deserialize<D>(deserializer: D) -> Result<MintAssets, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_map(MintAssetsVisitor)
-    }
-}
-
-struct MintAssetsVisitor;
-
-impl<'de> Visitor<'de> for MintAssetsVisitor {
-    type Value = MintAssets;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str(
-            "map of hex encoded policy ids to map of hex encoded asset names to u64 amounts",
-        )
-    }
-
-    fn visit_map<A>(self, mut access: A) -> Result<Self::Value, A::Error>
-    where
-        A: de::MapAccess<'de>,
-    {
-        let mut out_map = HashMap::new();
-
-        while let Some((key, value)) = access.next_entry()? {
-            out_map.insert(key, value);
-        }
-
-        Ok(MintAssets(out_map))
-    }
-}
+pub struct MintAssets(pub HashMap<PolicyId, HashMap<AssetName, i64>>);
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 struct CollateralOutput {
@@ -206,86 +91,11 @@ struct Datum {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
-enum RedeemerPurpose {
+pub enum RedeemerPurpose {
     Spend(TxHash, usize),
     Mint(PolicyId),
     // Reward TODO
     // Cert TODO
-}
-
-impl Serialize for RedeemerPurpose {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let str = match self {
-            RedeemerPurpose::Spend(hash, index) => {
-                format!("spend:{}#{}", hex::encode(&hash.0), index)
-            }
-            RedeemerPurpose::Mint(hash) => format!("mint:{}", hex::encode(&hash.0)),
-        };
-
-        serializer.serialize_str(&str)
-    }
-}
-
-impl<'de> Deserialize<'de> for RedeemerPurpose {
-    fn deserialize<D>(deserializer: D) -> Result<RedeemerPurpose, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_str(RedeemerPurposeVisitor)
-    }
-}
-
-struct RedeemerPurposeVisitor;
-
-impl<'de> Visitor<'de> for RedeemerPurposeVisitor {
-    type Value = RedeemerPurpose;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("'spend:{hex_txid}#{index}' or 'mint:{hex_policyid}'")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: de::Error,
-    {
-        let (tag, item) = v
-            .split_once(":")
-            .ok_or(E::custom("invalid redeemer purpose"))?;
-
-        match tag {
-            "spend" => {
-                let (hash, index) = item
-                    .split_once("#")
-                    .ok_or(E::custom("invalid spend redeemer item"))?;
-
-                let hash = Hash32(
-                    hex::decode(hash)
-                        .map_err(|_| E::custom("invalid spend redeemer item txid hex"))?
-                        .try_into()
-                        .map_err(|_| E::custom("invalid spend redeemer txid len"))?,
-                );
-                let index = index
-                    .parse()
-                    .map_err(|_| E::custom("invalid spend redeemer item index"))?;
-
-                Ok(RedeemerPurpose::Spend(hash, index))
-            }
-            "mint" => {
-                let hash = Hash28(
-                    hex::decode(item)
-                        .map_err(|_| E::custom("invalid mint redeemer item policy hex"))?
-                        .try_into()
-                        .map_err(|_| E::custom("invalid mint redeemer policy len"))?,
-                );
-
-                Ok(RedeemerPurpose::Mint(hash))
-            }
-            _ => Err(E::custom("invalid redeemer tag")),
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -298,44 +108,7 @@ struct ExUnits {
 struct Redeemers(HashMap<RedeemerPurpose, Option<ExUnits>>);
 
 #[derive(PartialEq, Eq, Debug)]
-struct Address(PallasAddress);
-
-impl Serialize for Address {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        serializer.serialize_str(&self.0.to_string())
-    }
-}
-
-impl<'de> Deserialize<'de> for Address {
-    fn deserialize<D>(deserializer: D) -> Result<Address, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_str(AddressVisitor)
-    }
-}
-
-struct AddressVisitor;
-
-impl<'de> Visitor<'de> for AddressVisitor {
-    type Value = Address;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("bech32 shelley address or base58 byron address")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: de::Error,
-    {
-        Ok(Address(
-            PallasAddress::from_str(v).map_err(|_| E::custom("invalid address"))?,
-        ))
-    }
-}
+pub struct Address(pub PallasAddress);
 
 #[cfg(test)]
 mod tests {
@@ -343,6 +116,8 @@ mod tests {
 
     use chrono::DateTime;
     use pallas::ledger::addresses::Address as PallasAddress;
+
+    use crate::transaction::model::Hash32;
 
     use super::*;
 
