@@ -17,6 +17,7 @@ This tree-like structure represents the convention to be used by the CLI to stor
     - `${WALLET_SLUG}`
       - state.sqlite
       - config.toml
+  - transactions
 
 
 The `ROOT_DIR` is the main entry point to the structure. The CLI will obtain the concrete value following this procedure:
