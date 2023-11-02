@@ -3,16 +3,19 @@
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
-#[sea_orm(table_name = "tx_history")]
+#[sea_orm(table_name = "transaction")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     #[sea_orm(column_type = "Binary(BlobSize::Blob(None))")]
-    pub tx_hash: Vec<u8>,
-    pub slot: i64,
-    pub block_index: i32,
-    #[sea_orm(column_type = "Binary(BlobSize::Blob(None))")]
-    pub balance_delta: Vec<u8>,
+    pub tx_json: Vec<u8>,
+    #[sea_orm(column_type = "Binary(BlobSize::Blob(None))", nullable)]
+    pub tx_cbor: Option<Vec<u8>>,
+    pub is_signed: Option<bool>,
+    pub is_submitted: Option<bool>,
+    pub slot: Option<i64>,
+    pub hash: Option<String>,
+    pub annotation: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

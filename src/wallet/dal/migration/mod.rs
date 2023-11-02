@@ -4,6 +4,7 @@ mod m20231012_000001_create_utxo_table;
 mod m20231012_000002_create_history_table;
 mod m20231012_000003_create_intersects_table;
 mod m20231012_000004_create_pparams_table;
+mod m20231102_000005_create_transactions_table;
 
 pub struct Migrator;
 
@@ -15,6 +16,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20231012_000002_create_history_table::Migration),
             Box::new(m20231012_000003_create_intersects_table::Migration),
             Box::new(m20231012_000004_create_pparams_table::Migration),
+            Box::new(m20231102_000005_create_transactions_table::Migration),
         ]
     }
 }

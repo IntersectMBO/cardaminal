@@ -2,21 +2,23 @@ use core::fmt;
 use pallas::ledger::addresses::Address as PallasAddress;
 use std::{collections::HashMap, str::FromStr};
 
-use chrono::{DateTime, Utc};
+use super::{Bytes, Hash28, Hash32, TransactionStatus, TxHash};
+use crate::utils::{deserialize_date, serialize_date};
+use chrono::{DateTime, Local};
 use serde::{
     de::{self, Visitor},
     ser::SerializeMap,
     Deserialize, Deserializer, Serialize, Serializer,
 };
 
-use super::{Bytes, Hash28, Hash32, TransactionStatus, TxHash};
-
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
 struct StagingTransaction {
-    version: u8,
-    created_at: DateTime<Utc>,
+    version: String,
+    #[serde(serialize_with = "serialize_date")]
+    #[serde(deserialize_with = "deserialize_date")]
+    created_at: DateTime<Local>,
     status: TransactionStatus,
-    inputs: Vec<Input>,
+    inputs: Option<Vec<Input>>,
     reference_inputs: Option<Vec<Input>>,
     outputs: Option<Vec<Output>>,
     fee: Option<u64>,
@@ -32,6 +34,21 @@ struct StagingTransaction {
     redeemers: Option<Redeemers>,
     signature_amount_override: Option<u8>,
     change_address: Option<Address>,
+}
+
+impl StagingTransaction {
+    pub fn new() -> Self {
+        let version: String = env!("CARGO_PKG_VERSION").into();
+
+        let transaction = Self {
+            version,
+            created_at: Local::now(),
+            status: TransactionStatus::Staging,
+            ..Default::default()
+        };
+
+        transaction
+    }
 }
 
 type PubKeyHash = Hash28;
@@ -341,7 +358,6 @@ impl<'de> Visitor<'de> for AddressVisitor {
 mod tests {
     use std::str::FromStr;
 
-    use chrono::DateTime;
     use pallas::ledger::addresses::Address as PallasAddress;
 
     use super::*;
@@ -349,15 +365,17 @@ mod tests {
     #[test]
     fn json_roundtrip() {
         let tx = StagingTransaction {
-            version: 3,
-            created_at: DateTime::from_timestamp(0, 0).unwrap(),
+            version: env!("CARGO_PKG_VERSION").into(),
+            created_at: Local::now(),
             status: TransactionStatus::Staging,
-            inputs: vec![
-                Input {
-                    tx_hash: Hash32([0; 32]),
-                    tx_index: 1
-                }
-            ],
+            inputs: Some(
+                vec![
+                    Input {
+                        tx_hash: Hash32([0; 32]),
+                        tx_index: 1
+                    }
+                ]
+            ) ,
             reference_inputs: Some(vec![
                 Input {
                     tx_hash: Hash32([1; 32]),
@@ -417,6 +435,7 @@ mod tests {
         };
 
         let serialised_tx = serde_json::to_string(&tx).unwrap();
+        dbg!(&serialised_tx);
 
         let deserialised_tx: StagingTransaction = serde_json::from_str(&serialised_tx).unwrap();
 

@@ -8,9 +8,10 @@ use serde::{
 pub mod built;
 pub mod staging;
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
 enum TransactionStatus {
+    #[default]
     Staging,
     Built,
 }
