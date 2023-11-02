@@ -10,7 +10,7 @@ use miette::{Context, IntoDiagnostic};
 use pallas::ledger::traverse::{Era, MultiEraOutput};
 use serde::{Deserialize, Serialize};
 
-use super::dal::entities::prelude::UtxoModel;
+use super::dal::entities::utxo::Model as UtxoModel;
 use crate::utils::{deserialize_date, serialize_date, OutputFormatter};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -35,7 +35,7 @@ pub struct Wallet {
 
     #[serde(serialize_with = "serialize_date")]
     #[serde(deserialize_with = "deserialize_date")]
-    pub created_on: DateTime<Local>,
+    pub created_at: DateTime<Local>,
 }
 
 impl Wallet {
@@ -48,7 +48,7 @@ impl Wallet {
             keys,
             addresses,
             chain,
-            created_on: Local::now(),
+            created_at: Local::now(),
         }
     }
 
