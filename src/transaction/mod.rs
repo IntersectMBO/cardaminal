@@ -90,7 +90,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::List(args) => list::run(args, ctx).await,
         Commands::Delete(args) => delete::run(args, ctx).await,
         Commands::Inspect(args) => inspect::run(args).await,
-        Commands::Input(args) => input::run(args).await,
+        Commands::Input(args) => input::run(args, ctx).await,
         Commands::ReferenceInput(args) => referenceinput::run(args).await,
         Commands::Output(args) => output::run(args).await,
         Commands::Fee(args) => fee::run(args).await,

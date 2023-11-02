@@ -21,7 +21,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .await
         .into_diagnostic()?;
 
-    let tx = StagingTransaction::new();
+    let tx = StagingTransaction::default();
     let tx_json = serde_json::to_vec(&tx).into_diagnostic()?;
 
     let id = wallet_db

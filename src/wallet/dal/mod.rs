@@ -332,6 +332,16 @@ impl WalletDB {
             .await?;
         Ok(())
     }
+
+    pub async fn update_transaction(&self, model: transaction::Model) -> Result<(), DbErr> {
+        let model: entities::transaction::ActiveModel = model.into();
+
+        Transaction::update(model.reset_all())
+            .exec(&self.conn)
+            .await?;
+
+        Ok(())
+    }
 }
 
 #[cfg(test)]

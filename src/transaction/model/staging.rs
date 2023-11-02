@@ -1,24 +1,17 @@
 use core::fmt;
 use pallas::ledger::addresses::Address as PallasAddress;
-use std::{collections::HashMap, str::FromStr};
-
-use super::{Bytes, Hash28, Hash32, TransactionStatus, TxHash};
-use crate::utils::{deserialize_date, serialize_date};
-use chrono::{DateTime, Local};
 use serde::{
     de::{self, Visitor},
     ser::SerializeMap,
     Deserialize, Deserializer, Serialize, Serializer,
 };
+use std::{collections::HashMap, str::FromStr};
+
+use super::{Bytes, Hash28, Hash32, TxHash};
 
 #[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct StagingTransaction {
-    version: String,
-    #[serde(serialize_with = "serialize_date")]
-    #[serde(deserialize_with = "deserialize_date")]
-    created_at: DateTime<Local>,
-    status: TransactionStatus,
-    inputs: Option<Vec<Input>>,
+    pub inputs: Option<Vec<Input>>,
     reference_inputs: Option<Vec<Input>>,
     outputs: Option<Vec<Output>>,
     fee: Option<u64>,
@@ -36,21 +29,6 @@ pub struct StagingTransaction {
     change_address: Option<Address>,
 }
 
-impl StagingTransaction {
-    pub fn new() -> Self {
-        let version: String = env!("CARGO_PKG_VERSION").into();
-
-        let transaction = Self {
-            version,
-            created_at: Local::now(),
-            status: TransactionStatus::Staging,
-            ..Default::default()
-        };
-
-        transaction
-    }
-}
-
 type PubKeyHash = Hash28;
 type ScriptHash = Hash28;
 type ScriptBytes = Bytes;
@@ -59,9 +37,14 @@ type DatumBytes = Bytes;
 type AssetName = Bytes;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Input {
+pub struct Input {
     tx_hash: TxHash,
     tx_index: usize,
+}
+impl Input {
+    pub fn new(tx_hash: TxHash, tx_index: usize) -> Self {
+        Self { tx_hash, tx_index }
+    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -365,9 +348,6 @@ mod tests {
     #[test]
     fn json_roundtrip() {
         let tx = StagingTransaction {
-            version: env!("CARGO_PKG_VERSION").into(),
-            created_at: Local::now(),
-            status: TransactionStatus::Staging,
             inputs: Some(
                 vec![
                     Input {
