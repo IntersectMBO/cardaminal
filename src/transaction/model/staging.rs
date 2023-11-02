@@ -12,7 +12,7 @@ use serde::{
 };
 
 #[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct StagingTransaction {
+pub struct StagingTransaction {
     version: String,
     #[serde(serialize_with = "serialize_date")]
     #[serde(deserialize_with = "deserialize_date")]

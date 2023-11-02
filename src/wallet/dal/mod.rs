@@ -9,7 +9,7 @@ use sea_orm::entity::prelude::*;
 use sea_orm::{Condition, Database, Order, Paginator, QueryOrder, SelectModel, TransactionTrait};
 use sea_orm_migration::MigratorTrait;
 
-use self::entities::prelude::{ProtocolParameters, RecentPoints, TxHistory, Utxo};
+use self::entities::prelude::{ProtocolParameters, RecentPoints, Transaction, TxHistory, Utxo};
 use self::entities::{protocol_parameters, recent_points, tx_history, utxo};
 use self::migration::Migrator;
 
@@ -294,6 +294,21 @@ impl WalletDB {
         }
 
         Ok(())
+    }
+
+    // Transactions
+
+    pub async fn insert_transaction(&self, tx_json: Vec<u8>) -> Result<i32, DbErr> {
+        let transaction_model = entities::transaction::ActiveModel {
+            tx_json: sea_orm::ActiveValue::Set(tx_json),
+            ..Default::default()
+        };
+
+        let result = Transaction::insert(transaction_model)
+            .exec(&self.conn)
+            .await?;
+
+        Ok(result.last_insert_id)
     }
 }
 
