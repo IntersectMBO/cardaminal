@@ -20,8 +20,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Transaction::TxJson).binary().not_null())
                     .col(ColumnDef::new(Transaction::TxCbor).binary())
-                    .col(ColumnDef::new(Transaction::IsSigned).boolean())
-                    .col(ColumnDef::new(Transaction::IsSubmitted).boolean())
+                    .col(ColumnDef::new(Transaction::Status).string().not_null())
                     .col(ColumnDef::new(Transaction::Slot).big_unsigned())
                     .col(ColumnDef::new(Transaction::Hash).string())
                     .col(ColumnDef::new(Transaction::Annotation).string())
@@ -43,8 +42,7 @@ enum Transaction {
     Id,
     TxJson,
     TxCbor,
-    IsSigned,
-    IsSubmitted,
+    Status,
     Slot,
     Hash,
     Annotation,

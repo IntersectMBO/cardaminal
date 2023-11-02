@@ -5,6 +5,7 @@ mod build;
 mod changeaddress;
 mod collateralinput;
 mod collateraloutput;
+mod config;
 mod create;
 mod datum;
 mod delete;
@@ -86,7 +87,7 @@ enum Commands {
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
         Commands::Create(args) => create::run(args, ctx).await,
-        Commands::List(args) => list::run(args).await,
+        Commands::List(args) => list::run(args, ctx).await,
         Commands::Delete(args) => delete::run(args).await,
         Commands::Inspect(args) => inspect::run(args).await,
         Commands::Input(args) => input::run(args).await,

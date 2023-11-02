@@ -40,7 +40,6 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .await
         .into_diagnostic()?;
 
-    // TODO: get utxos from wallet address
     let utxos = wallet_db
         .paginate_utxos(Order::Asc, Some(args.size))
         .fetch_page(args.page)

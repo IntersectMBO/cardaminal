@@ -8,6 +8,7 @@ use crate::wallet::{config::Wallet, dal::WalletDB};
 #[derive(Parser)]
 pub struct Args {
     /// name of the wallet
+    #[arg(env = "CARDAMINAL_DEFAULT_WALLET")]
     wallet: String,
 }
 

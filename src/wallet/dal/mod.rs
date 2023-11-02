@@ -10,7 +10,7 @@ use sea_orm::{Condition, Database, Order, Paginator, QueryOrder, SelectModel, Tr
 use sea_orm_migration::MigratorTrait;
 
 use self::entities::prelude::{ProtocolParameters, RecentPoints, Transaction, TxHistory, Utxo};
-use self::entities::{protocol_parameters, recent_points, tx_history, utxo};
+use self::entities::{protocol_parameters, recent_points, transaction, tx_history, utxo};
 use self::migration::Migrator;
 
 static DEFAULT_PAGE_SIZE: u64 = 20;
@@ -301,6 +301,7 @@ impl WalletDB {
     pub async fn insert_transaction(&self, tx_json: Vec<u8>) -> Result<i32, DbErr> {
         let transaction_model = entities::transaction::ActiveModel {
             tx_json: sea_orm::ActiveValue::Set(tx_json),
+            status: sea_orm::ActiveValue::Set(transaction::Status::Pending),
             ..Default::default()
         };
 
@@ -309,6 +310,16 @@ impl WalletDB {
             .await?;
 
         Ok(result.last_insert_id)
+    }
+
+    pub fn paginate_transactions(
+        &self,
+        order: Order,
+        page_size: Option<u64>,
+    ) -> Paginator<'_, DatabaseConnection, SelectModel<transaction::Model>> {
+        Transaction::find()
+            .order_by(transaction::Column::Id, order.clone())
+            .paginate(&self.conn, page_size.unwrap_or(DEFAULT_PAGE_SIZE))
     }
 }
 
