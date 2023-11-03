@@ -301,7 +301,7 @@ impl WalletDB {
     pub async fn insert_transaction(&self, tx_json: Vec<u8>) -> Result<i32, DbErr> {
         let transaction_model = entities::transaction::ActiveModel {
             tx_json: sea_orm::ActiveValue::Set(tx_json),
-            status: sea_orm::ActiveValue::Set(transaction::Status::Pending),
+            status: sea_orm::ActiveValue::Set(transaction::Status::Staging),
             ..Default::default()
         };
 

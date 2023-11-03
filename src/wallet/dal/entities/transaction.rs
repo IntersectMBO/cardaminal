@@ -5,12 +5,14 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, Eq, EnumIter, DeriveActiveEnum)]
 #[sea_orm(rs_type = "String", db_type = "String(Some(1))")]
 pub enum Status {
-    #[sea_orm(string_value = "pending")]
-    Pending,
+    #[sea_orm(string_value = "staging")]
+    Staging,
     #[sea_orm(string_value = "signed")]
     Signed,
-    #[sea_orm(string_value = "submited")]
-    Submited,
+    #[sea_orm(string_value = "submitted")]
+    Submitted,
+    #[sea_orm(string_value = "minted")]
+    Minted,
 }
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
@@ -36,9 +38,10 @@ impl ActiveModelBehavior for ActiveModel {}
 impl Display for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Status::Pending => write!(f, "Pending"),
+            Status::Staging => write!(f, "Staging"),
             Status::Signed => write!(f, "Signed"),
-            Status::Submited => write!(f, "Submited"),
+            Status::Submitted => write!(f, "Submitted"),
+            Status::Minted => write!(f, "Minted"),
         }
     }
 }
