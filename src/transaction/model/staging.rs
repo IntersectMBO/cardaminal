@@ -11,6 +11,7 @@ use super::{Bytes, Hash28, Hash32, TxHash};
 
 #[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct StagingTransaction {
+    version: String,
     pub inputs: Option<Vec<Input>>,
     reference_inputs: Option<Vec<Input>>,
     outputs: Option<Vec<Output>>,
@@ -27,6 +28,14 @@ pub struct StagingTransaction {
     redeemers: Option<Redeemers>,
     signature_amount_override: Option<u8>,
     change_address: Option<Address>,
+}
+impl StagingTransaction {
+    pub fn new() -> Self {
+        Self {
+            version: String::from("v1"),
+            ..Default::default()
+        }
+    }
 }
 
 type PubKeyHash = Hash28;
@@ -348,6 +357,7 @@ mod tests {
     #[test]
     fn json_roundtrip() {
         let tx = StagingTransaction {
+            version: String::from("v1"),
             inputs: Some(
                 vec![
                     Input {
