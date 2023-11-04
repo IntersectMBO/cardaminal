@@ -10,6 +10,7 @@ mod create;
 mod datum;
 mod delete;
 mod disclosedsigner;
+mod export;
 mod fee;
 mod input;
 mod inspect;
@@ -49,6 +50,8 @@ enum Commands {
     Sign(sign::Args),
     /// submit a transaction to cardano node
     Submit(submit::Args),
+    /// export a transaction to json file
+    Export(export::Args),
     /// manage inputs
     Input(input::Args),
     /// manage reference inputs
@@ -109,5 +112,6 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::Sign(args) => sign::run(args).await,
         Commands::Signatures(args) => signatures::run(args).await,
         Commands::Submit(args) => submit::run(args).await,
+        Commands::Export(args) => export::run(args, ctx).await,
     }
 }
