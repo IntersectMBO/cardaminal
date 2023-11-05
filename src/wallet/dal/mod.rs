@@ -26,11 +26,15 @@ impl WalletDB {
         let sqlite_url = format!("sqlite:{}/state.sqlite?mode=rwc", path.display()); // TODO
         let db = Database::connect(sqlite_url).await?;
 
-        Ok(Self {
+        let out = Self {
             name: name.to_owned(),
             path: path.to_path_buf(),
             conn: db,
-        })
+        };
+
+        out.migrate_up().await?;
+
+        Ok(out)
     }
 
     pub async fn migrate_up(&self) -> Result<(), DbErr> {
