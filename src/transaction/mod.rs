@@ -5,6 +5,7 @@ mod build;
 mod changeaddress;
 mod collateralinput;
 mod collateraloutput;
+mod common;
 mod config;
 mod create;
 mod datum;
@@ -36,15 +37,18 @@ pub struct Args {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// create a new empty transaction in the transaction staging area for the specified chain
+    /// create a new empty transaction in the transaction staging area for the
+    /// specified chain
     Create(create::Args),
-    /// list transactions which are in the staging area, along with some information summary regarding the transaction
+    /// list transactions which are in the staging area, along with some
+    /// information summary regarding the transaction
     List(list::Args),
     /// remove a transaction from the transaction staging area
     Delete(delete::Args),
     /// detailed information on a specific transaction in the staging area
     Inspect(inspect::Args),
-    /// build/finalize a transaction in the staging area so that it is ready for signatures to be attached
+    /// build/finalize a transaction in the staging area so that it is ready for
+    /// signatures to be attached
     Build(build::Args),
     /// sign a transaction using a Cardaminal wallet
     Sign(sign::Args),
@@ -95,7 +99,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::Inspect(args) => inspect::run(args, ctx).await,
         Commands::Input(args) => input::run(args, ctx).await,
         Commands::ReferenceInput(args) => referenceinput::run(args).await,
-        Commands::Output(args) => output::run(args).await,
+        Commands::Output(args) => output::run(args, ctx).await,
         Commands::Fee(args) => fee::run(args).await,
         Commands::Mint(args) => mint::run(args).await,
         Commands::TTL(args) => ttl::run(args).await,

@@ -1,18 +1,32 @@
 use clap::Parser;
+use miette::{Context, IntoDiagnostic};
 use tracing::instrument;
+
+use crate::transaction::model::staging::{Address, Output};
+use pallas::ledger::addresses::Address as PallasAddress;
 
 #[derive(Parser)]
 pub struct Args {
+    /// name of the wallet
+    #[arg(env = "CARDAMINAL_DEFAULT_WALLET")]
+    wallet: String,
+
     /// transaction id
-    tx_id: String,
+    id: i32,
+
     /// output address
     address: String,
+
+    /// amount of lovelace to include
+    lovelace_amount: Option<u64>,
+
     /// output assets [policy][name]:[amount]
     assets: Vec<String>,
 
     /// datum hash
     #[arg(long, action)]
     datum: Option<String>,
+
     /// datum file path
     #[arg(long, action)]
     datum_file: Option<String>,
@@ -20,12 +34,40 @@ pub struct Args {
     /// reference script hash
     #[arg(long, action)]
     reference_script: Option<String>,
+
     /// reference script file path
     #[arg(long, action)]
     reference_script_file: Option<String>,
 }
 
+// TODO: find value from params
+const MIN_UTXO: u64 = 1_000_000;
+
 #[instrument("add", skip_all, fields())]
-pub async fn run(_args: Args) -> miette::Result<()> {
-    Ok(())
+pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
+    let address: Address = PallasAddress::from_bech32(&args.address)
+        .into_diagnostic()
+        .context("parsing address")?
+        .into();
+
+    let lovelace = args.lovelace_amount.unwrap_or(MIN_UTXO);
+
+    crate::transaction::common::with_staging_tx(&args.wallet, args.id, ctx, move |mut tx| {
+        let mut outputs = tx.outputs.unwrap_or(vec![]);
+
+        let new = Output {
+            address,
+            lovelace,
+            assets: None,
+            datum: None,
+            script: None,
+        };
+
+        outputs.push(new);
+
+        tx.outputs = Some(outputs);
+
+        Ok(tx)
+    })
+    .await
 }
