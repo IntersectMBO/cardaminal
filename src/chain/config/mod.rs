@@ -24,7 +24,7 @@ pub struct Chain {
 
     #[serde(serialize_with = "serialize_date")]
     #[serde(deserialize_with = "deserialize_date")]
-    pub created_at: DateTime<Local>,
+    pub created_on: DateTime<Local>,
 }
 impl Chain {
     pub fn try_new(
@@ -44,7 +44,7 @@ impl Chain {
             upstream,
             magic,
             after: None,
-            created_at: Local::now(),
+            created_on: Local::now(),
         };
 
         if let Some(after) = after {
