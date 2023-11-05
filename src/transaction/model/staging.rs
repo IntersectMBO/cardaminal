@@ -5,7 +5,7 @@ use serde::{
     ser::SerializeMap,
     Deserialize, Deserializer, Serialize, Serializer,
 };
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, ops::Deref, str::FromStr};
 
 use super::{Bytes, Hash28, Hash32, TxHash};
 
@@ -13,21 +13,21 @@ use super::{Bytes, Hash28, Hash32, TxHash};
 pub struct StagingTransaction {
     version: String,
     pub inputs: Option<Vec<Input>>,
-    reference_inputs: Option<Vec<Input>>,
-    outputs: Option<Vec<Output>>,
-    fee: Option<u64>,
-    mint: Option<MintAssets>,
-    valid_from_slot: Option<u64>,
-    invalid_from_slot: Option<u64>,
-    network_id: Option<u32>,
-    collateral_inputs: Option<Vec<Input>>,
-    collateral_output: Option<CollateralOutput>,
-    disclosed_signers: Option<Vec<PubKeyHash>>,
-    scripts: Option<Vec<Script>>,
-    datums: Option<Vec<DatumBytes>>,
-    redeemers: Option<Redeemers>,
-    signature_amount_override: Option<u8>,
-    change_address: Option<Address>,
+    pub reference_inputs: Option<Vec<Input>>,
+    pub outputs: Option<Vec<Output>>,
+    pub fee: Option<u64>,
+    pub mint: Option<MintAssets>,
+    pub valid_from_slot: Option<u64>,
+    pub invalid_from_slot: Option<u64>,
+    pub network_id: Option<u32>,
+    pub collateral_inputs: Option<Vec<Input>>,
+    pub collateral_output: Option<CollateralOutput>,
+    pub disclosed_signers: Option<Vec<PubKeyHash>>,
+    pub scripts: Option<Vec<Script>>,
+    pub datums: Option<Vec<DatumBytes>>,
+    pub redeemers: Option<Redeemers>,
+    pub signature_amount_override: Option<u8>,
+    pub change_address: Option<Address>,
 }
 impl StagingTransaction {
     pub fn new() -> Self {
@@ -38,12 +38,12 @@ impl StagingTransaction {
     }
 }
 
-type PubKeyHash = Hash28;
-type ScriptHash = Hash28;
-type ScriptBytes = Bytes;
-type PolicyId = ScriptHash;
-type DatumBytes = Bytes;
-type AssetName = Bytes;
+pub type PubKeyHash = Hash28;
+pub type ScriptHash = Hash28;
+pub type ScriptBytes = Bytes;
+pub type PolicyId = ScriptHash;
+pub type DatumBytes = Bytes;
+pub type AssetName = Bytes;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Input {
@@ -57,16 +57,16 @@ impl Input {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Output {
-    address: Address,
-    lovelace: u64,
-    assets: Option<OutputAssets>,
-    datum: Option<Datum>,
-    script: Option<Script>,
+pub struct Output {
+    pub address: Address,
+    pub lovelace: u64,
+    pub assets: Option<OutputAssets>,
+    pub datum: Option<Datum>,
+    pub script: Option<Script>,
 }
 
 #[derive(PartialEq, Eq, Debug)]
-struct OutputAssets(HashMap<PolicyId, HashMap<AssetName, u64>>);
+pub struct OutputAssets(HashMap<PolicyId, HashMap<AssetName, u64>>);
 
 impl Serialize for OutputAssets {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -196,9 +196,9 @@ enum ScriptKind {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Script {
-    kind: ScriptKind,
-    bytes: ScriptBytes,
+pub struct Script {
+    pub kind: ScriptKind,
+    pub bytes: ScriptBytes,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -209,9 +209,9 @@ enum DatumKind {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Datum {
-    kind: DatumKind,
-    bytes: DatumBytes,
+pub struct Datum {
+    pub kind: DatumKind,
+    pub bytes: DatumBytes,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
@@ -307,7 +307,21 @@ struct ExUnits {
 struct Redeemers(HashMap<RedeemerPurpose, Option<ExUnits>>);
 
 #[derive(PartialEq, Eq, Debug)]
-struct Address(PallasAddress);
+pub struct Address(PallasAddress);
+
+impl Deref for Address {
+    type Target = PallasAddress;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<PallasAddress> for Address {
+    fn from(value: PallasAddress) -> Self {
+        Self(value)
+    }
+}
 
 impl Serialize for Address {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
