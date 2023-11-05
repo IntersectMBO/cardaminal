@@ -1,22 +1,18 @@
 use core::fmt;
 use pallas::ledger::addresses::Address as PallasAddress;
-use std::{collections::HashMap, str::FromStr};
-
-use chrono::{DateTime, Utc};
 use serde::{
     de::{self, Visitor},
     ser::SerializeMap,
     Deserialize, Deserializer, Serialize, Serializer,
 };
+use std::{collections::HashMap, str::FromStr};
 
-use super::{Bytes, Hash28, Hash32, TransactionStatus, TxHash};
+use super::{Bytes, Hash28, Hash32, TxHash};
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct StagingTransaction {
-    version: u8,
-    created_at: DateTime<Utc>,
-    status: TransactionStatus,
-    inputs: Vec<Input>,
+#[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
+pub struct StagingTransaction {
+    version: String,
+    pub inputs: Option<Vec<Input>>,
     reference_inputs: Option<Vec<Input>>,
     outputs: Option<Vec<Output>>,
     fee: Option<u64>,
@@ -33,6 +29,14 @@ struct StagingTransaction {
     signature_amount_override: Option<u8>,
     change_address: Option<Address>,
 }
+impl StagingTransaction {
+    pub fn new() -> Self {
+        Self {
+            version: String::from("v1"),
+            ..Default::default()
+        }
+    }
+}
 
 type PubKeyHash = Hash28;
 type ScriptHash = Hash28;
@@ -42,9 +46,14 @@ type DatumBytes = Bytes;
 type AssetName = Bytes;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Input {
+pub struct Input {
     tx_hash: TxHash,
     tx_index: usize,
+}
+impl Input {
+    pub fn new(tx_hash: TxHash, tx_index: usize) -> Self {
+        Self { tx_hash, tx_index }
+    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -341,7 +350,6 @@ impl<'de> Visitor<'de> for AddressVisitor {
 mod tests {
     use std::str::FromStr;
 
-    use chrono::DateTime;
     use pallas::ledger::addresses::Address as PallasAddress;
 
     use super::*;
@@ -349,15 +357,15 @@ mod tests {
     #[test]
     fn json_roundtrip() {
         let tx = StagingTransaction {
-            version: 3,
-            created_at: DateTime::from_timestamp(0, 0).unwrap(),
-            status: TransactionStatus::Staging,
-            inputs: vec![
-                Input {
-                    tx_hash: Hash32([0; 32]),
-                    tx_index: 1
-                }
-            ],
+            version: String::from("v1"),
+            inputs: Some(
+                vec![
+                    Input {
+                        tx_hash: Hash32([0; 32]),
+                        tx_index: 1
+                    }
+                ]
+            ) ,
             reference_inputs: Some(vec![
                 Input {
                     tx_hash: Hash32([1; 32]),
@@ -417,6 +425,7 @@ mod tests {
         };
 
         let serialised_tx = serde_json::to_string(&tx).unwrap();
+        dbg!(&serialised_tx);
 
         let deserialised_tx: StagingTransaction = serde_json::from_str(&serialised_tx).unwrap();
 

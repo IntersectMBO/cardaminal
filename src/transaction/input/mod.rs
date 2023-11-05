@@ -19,9 +19,9 @@ enum Commands {
 }
 
 #[instrument("input", skip_all)]
-pub async fn run(args: Args) -> miette::Result<()> {
+pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
-        Commands::Add(args) => add::run(args).await,
+        Commands::Add(args) => add::run(args, ctx).await,
         Commands::Remove(args) => remove::run(args).await,
     }
 }

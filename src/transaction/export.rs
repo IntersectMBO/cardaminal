@@ -1,9 +1,11 @@
+use std::{fs, io::Write, path::PathBuf};
+
 use clap::Parser;
 use miette::IntoDiagnostic;
-use tracing::{info, instrument};
+use tracing::instrument;
 
 use crate::{
-    transaction::model::staging::{Input, StagingTransaction},
+    transaction::model::staging::StagingTransaction,
     wallet::{config::Wallet, dal::WalletDB},
 };
 
@@ -12,15 +14,16 @@ pub struct Args {
     /// name of the wallet
     #[arg(env = "CARDAMINAL_DEFAULT_WALLET")]
     wallet: String,
+
     /// transaction id
     id: i32,
-    /// utxo hash
-    utxo_hash: String,
-    /// utxo idx
-    utxo_idx: usize,
+
+    /// output to save json file
+    #[arg(long, action)]
+    output_path: Option<PathBuf>,
 }
 
-#[instrument("add", skip_all, fields())]
+#[instrument("export", skip_all, fields(wallet=args.wallet,id=args.id))]
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let wallet = Wallet::load_config(&ctx.dirs.root_dir, &args.wallet)?
         .ok_or(miette::miette!("wallet doesn't exist"))?;
@@ -29,30 +32,22 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .await
         .into_diagnostic()?;
 
-    let mut transaction = wallet_db
+    let transaction = wallet_db
         .fetch_by_id(&args.id)
         .await
         .into_diagnostic()?
         .ok_or(miette::miette!("transaction doesn't exist"))?;
 
-    let mut staging_transaction: StagingTransaction =
+    let staging_transaction: StagingTransaction =
         serde_json::from_slice(&transaction.tx_json).into_diagnostic()?;
 
-    let mut inputs = staging_transaction.inputs.unwrap_or(vec![]);
+    let json = serde_json::to_vec_pretty(&staging_transaction).into_diagnostic()?;
 
-    let input = Input::new(args.utxo_hash.try_into()?, args.utxo_idx);
-    inputs.push(input);
+    let output_path = args.output_path.unwrap_or(PathBuf::new());
 
-    staging_transaction.inputs = Some(inputs);
-
-    transaction.tx_json = serde_json::to_vec(&staging_transaction).into_diagnostic()?;
-
-    wallet_db
-        .update_transaction(transaction)
-        .await
+    let mut file = fs::File::create(output_path.join(format!("tx{}.json", transaction.id)))
         .into_diagnostic()?;
-
-    info!("transaction updated");
+    file.write_all(&json).into_diagnostic()?;
 
     Ok(())
 }

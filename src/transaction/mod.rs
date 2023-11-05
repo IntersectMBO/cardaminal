@@ -5,10 +5,12 @@ mod build;
 mod changeaddress;
 mod collateralinput;
 mod collateraloutput;
+mod config;
 mod create;
 mod datum;
 mod delete;
 mod disclosedsigner;
+mod export;
 mod fee;
 mod input;
 mod inspect;
@@ -48,6 +50,8 @@ enum Commands {
     Sign(sign::Args),
     /// submit a transaction to cardano node
     Submit(submit::Args),
+    /// export a transaction to json file
+    Export(export::Args),
     /// manage inputs
     Input(input::Args),
     /// manage reference inputs
@@ -83,13 +87,13 @@ enum Commands {
 }
 
 #[instrument("transaction", skip_all)]
-pub async fn run(args: Args) -> miette::Result<()> {
+pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
-        Commands::Create(args) => create::run(args).await,
-        Commands::List(args) => list::run(args).await,
-        Commands::Delete(args) => delete::run(args).await,
-        Commands::Inspect(args) => inspect::run(args).await,
-        Commands::Input(args) => input::run(args).await,
+        Commands::Create(args) => create::run(args, ctx).await,
+        Commands::List(args) => list::run(args, ctx).await,
+        Commands::Delete(args) => delete::run(args, ctx).await,
+        Commands::Inspect(args) => inspect::run(args, ctx).await,
+        Commands::Input(args) => input::run(args, ctx).await,
         Commands::ReferenceInput(args) => referenceinput::run(args).await,
         Commands::Output(args) => output::run(args).await,
         Commands::Fee(args) => fee::run(args).await,
@@ -108,5 +112,6 @@ pub async fn run(args: Args) -> miette::Result<()> {
         Commands::Sign(args) => sign::run(args).await,
         Commands::Signatures(args) => signatures::run(args).await,
         Commands::Submit(args) => submit::run(args).await,
+        Commands::Export(args) => export::run(args, ctx).await,
     }
 }

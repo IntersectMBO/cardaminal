@@ -8,15 +8,8 @@ use serde::{
 pub mod built;
 pub mod staging;
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-#[serde(rename_all = "snake_case")]
-enum TransactionStatus {
-    Staging,
-    Built,
-}
-
-#[derive(PartialEq, Eq, Hash, Debug)]
-struct Hash32([u8; 32]);
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+pub struct Hash32([u8; 32]);
 
 impl Serialize for Hash32 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -139,4 +132,16 @@ impl<'de> Visitor<'de> for BytesVisitor {
     }
 }
 
-type TxHash = Hash32;
+pub type TxHash = Hash32;
+impl TryFrom<String> for TxHash {
+    type Error = miette::ErrReport;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Ok(Hash32(
+            hex::decode(value)
+                .map_err(|_| miette::miette!("invalid hex"))?
+                .try_into()
+                .map_err(|_| miette::miette!("invalid length"))?,
+        ))
+    }
+}

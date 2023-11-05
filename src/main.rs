@@ -88,6 +88,6 @@ async fn main() -> miette::Result<()> {
     match cli.command {
         Commands::Chain(args) => chain::run(args, &ctx).await,
         Commands::Wallet(args) => wallet::run(args, &ctx).await,
-        Commands::Transaction(args) => transaction::run(args).await,
+        Commands::Transaction(args) => transaction::run(args, &ctx).await,
     }
 }

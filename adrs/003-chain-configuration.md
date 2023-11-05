@@ -28,7 +28,7 @@ The content of the config file will use `TOML` format and the schema is to be in
 version = "v1alpha"
 name = "mainnet"
 magic = 11111
-created_on = "2023-03-03"
+created_at = "2023-03-03"
 
 [upstream]
 address = "my-relay:33301"
