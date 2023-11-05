@@ -35,7 +35,7 @@ pub struct Wallet {
 
     #[serde(serialize_with = "serialize_date")]
     #[serde(deserialize_with = "deserialize_date")]
-    pub created_at: DateTime<Local>,
+    pub created_on: DateTime<Local>,
 }
 
 impl Wallet {
@@ -48,7 +48,7 @@ impl Wallet {
             keys,
             addresses,
             chain,
-            created_at: Local::now(),
+            created_on: Local::now(),
         }
     }
 
