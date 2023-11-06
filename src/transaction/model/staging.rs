@@ -124,7 +124,7 @@ impl<'de> Visitor<'de> for OutputAssetsVisitor {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-pub struct MintAssets(HashMap<PolicyId, HashMap<AssetName, i64>>);
+pub struct MintAssets(pub HashMap<PolicyId, HashMap<AssetName, i64>>);
 
 impl Serialize for MintAssets {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
