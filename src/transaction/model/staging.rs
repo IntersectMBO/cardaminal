@@ -124,7 +124,7 @@ impl<'de> Visitor<'de> for OutputAssetsVisitor {
 }
 
 #[derive(PartialEq, Eq, Debug)]
-struct MintAssets(HashMap<PolicyId, HashMap<AssetName, i64>>);
+pub struct MintAssets(HashMap<PolicyId, HashMap<AssetName, i64>>);
 
 impl Serialize for MintAssets {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -182,14 +182,14 @@ impl<'de> Visitor<'de> for MintAssetsVisitor {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct CollateralOutput {
-    address: Address,
-    lovelace: u64,
+pub struct CollateralOutput {
+    pub address: Address,
+    pub lovelace: u64,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
-enum ScriptKind {
+pub enum ScriptKind {
     Native,
     PlutusV1,
     PlutusV2,
@@ -203,7 +203,7 @@ pub struct Script {
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
-enum DatumKind {
+pub enum DatumKind {
     Hash,
     Inline,
 }
@@ -304,7 +304,7 @@ struct ExUnits {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Redeemers(HashMap<RedeemerPurpose, Option<ExUnits>>);
+pub struct Redeemers(HashMap<RedeemerPurpose, Option<ExUnits>>);
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct Address(PallasAddress);

@@ -52,7 +52,7 @@ impl<'de> Visitor<'de> for Hash32Visitor {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
-struct Hash28([u8; 28]);
+pub struct Hash28([u8; 28]);
 
 impl Serialize for Hash28 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -95,7 +95,7 @@ impl<'de> Visitor<'de> for Hash28Visitor {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
-struct Bytes(Vec<u8>);
+pub struct Bytes(Vec<u8>);
 
 impl Serialize for Bytes {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
