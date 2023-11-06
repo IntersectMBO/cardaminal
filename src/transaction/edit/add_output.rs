@@ -10,13 +10,6 @@ use pallas::ledger::addresses::Address as PallasAddress;
 
 #[derive(Parser)]
 pub struct Args {
-    /// name of the wallet
-    #[arg(env = "CARDAMINAL_DEFAULT_WALLET")]
-    wallet: String,
-
-    /// transaction id
-    id: i32,
-
     /// output address
     address: String,
 
