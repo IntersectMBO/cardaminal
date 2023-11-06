@@ -51,7 +51,7 @@ impl<'de> Visitor<'de> for Hash32Visitor {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Debug)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Hash28(pub [u8; 28]);
 
 impl Serialize for Hash28 {
@@ -94,7 +94,7 @@ impl<'de> Visitor<'de> for Hash28Visitor {
     }
 }
 
-#[derive(PartialEq, Eq, Hash, Debug)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone)]
 pub struct Bytes(pub Vec<u8>);
 
 impl Serialize for Bytes {

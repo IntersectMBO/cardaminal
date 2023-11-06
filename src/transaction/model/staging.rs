@@ -1,4 +1,5 @@
 use core::fmt;
+use miette::{Context, IntoDiagnostic};
 use pallas::ledger::addresses::Address as PallasAddress;
 use serde::{
     de::{self, Visitor},
@@ -67,6 +68,54 @@ pub struct Output {
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct OutputAssets(HashMap<PolicyId, HashMap<AssetName, u64>>);
+
+impl TryFrom<Vec<String>> for OutputAssets {
+    type Error = miette::ErrReport;
+
+    fn try_from(value: Vec<String>) -> Result<Self, Self::Error> {
+        let mut assets: HashMap<PolicyId, HashMap<AssetName, u64>> = HashMap::new();
+        for asset_string in value {
+            let parts = asset_string.split(":").collect::<Vec<&str>>();
+            if parts.len() != 3 {
+                return Err(miette::ErrReport::msg("invalid asset string format"));
+            }
+
+            let policy = hex::decode(parts[0])
+                .into_diagnostic()
+                .context("parsing policy hex")?;
+
+            let policy = Hash28(policy.try_into().unwrap());
+
+            let asset = hex::decode(parts[1])
+                .into_diagnostic()
+                .context("parsing name hex")?;
+            let asset = crate::transaction::model::Bytes(asset);
+
+            let amount = parts[2]
+                .parse::<u64>()
+                .into_diagnostic()
+                .context("parsing amount u64")?;
+
+            assets
+                .entry(policy)
+                .and_modify(|policy_map| {
+                    policy_map
+                        .entry(asset.clone())
+                        .and_modify(|asset_map| {
+                            *asset_map += amount;
+                        })
+                        .or_insert(amount);
+                })
+                .or_insert_with(|| {
+                    let mut map: HashMap<AssetName, u64> = HashMap::new();
+                    map.insert(asset.clone(), amount);
+                    map
+                });
+        }
+
+        Ok(OutputAssets(assets))
+    }
+}
 
 impl Serialize for OutputAssets {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
