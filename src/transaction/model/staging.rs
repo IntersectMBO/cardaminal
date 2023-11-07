@@ -57,7 +57,7 @@ impl Input {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Output {
     pub address: Address,
     pub lovelace: u64,
@@ -66,7 +66,7 @@ pub struct Output {
     pub script: Option<Script>,
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct OutputAssets(HashMap<PolicyId, HashMap<AssetName, u64>>);
 
 impl TryFrom<Vec<String>> for OutputAssets {
@@ -236,7 +236,7 @@ pub struct CollateralOutput {
     pub lovelace: u64,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum ScriptKind {
     Native,
@@ -244,20 +244,20 @@ pub enum ScriptKind {
     PlutusV2,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Script {
     pub kind: ScriptKind,
     pub bytes: ScriptBytes,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum DatumKind {
     Hash,
     Inline,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Datum {
     pub kind: DatumKind,
     pub bytes: DatumBytes,
@@ -355,7 +355,7 @@ struct ExUnits {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Redeemers(HashMap<RedeemerPurpose, Option<ExUnits>>);
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Address(PallasAddress);
 
 impl Deref for Address {
