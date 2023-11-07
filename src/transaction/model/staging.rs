@@ -48,8 +48,8 @@ pub type AssetName = Bytes;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Input {
-    tx_hash: TxHash,
-    tx_index: usize,
+    pub tx_hash: TxHash,
+    pub tx_index: usize,
 }
 impl Input {
     pub fn new(tx_hash: TxHash, tx_index: usize) -> Self {
