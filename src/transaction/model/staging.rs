@@ -172,7 +172,7 @@ impl<'de> Visitor<'de> for OutputAssetsVisitor {
     }
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct MintAssets(pub HashMap<PolicyId, HashMap<AssetName, i64>>);
 
 impl Serialize for MintAssets {
