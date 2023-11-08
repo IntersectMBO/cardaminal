@@ -22,7 +22,7 @@ pub struct Args {
     file: Option<PathBuf>,
 }
 
-#[instrument("add datum", skip_all, fields())]
+#[instrument("add datum", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
     let datum_bytes = if let Some(hex) = args.hex {
         hex::decode(hex)

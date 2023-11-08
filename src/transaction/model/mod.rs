@@ -30,6 +30,15 @@ impl<'de> Deserialize<'de> for Hash32 {
     }
 }
 
+impl From<Vec<u8>> for Hash32 {
+    fn from(value: Vec<u8>) -> Self {
+        let mut hash32: Hash32 = Hash32([0; 32]);
+        hash32.0.copy_from_slice(value.as_slice());
+        hash32
+    }
+}
+
+
 impl From<Hash<32>> for Hash32 {
     fn from(value: Hash<32>) -> Self {
         let mut hash32: Hash32 = Hash32([0; 32]);
