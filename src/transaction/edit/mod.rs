@@ -160,7 +160,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::SetNetwork(args) => set_network::run(args).await,
         Commands::ClearNetwork(args) => clear_network::run(args).await,
         Commands::AddCollateralInput(args) => add_collateral_input::run(args, &edit_ctx).await,
-        Commands::RemoveCollateralInput(args) => remove_collateral_input::run(args).await,
+        Commands::RemoveCollateralInput(args) => remove_collateral_input::run(args, &edit_ctx).await,
         Commands::SetCollateralOutput(args) => set_collateral_output::run(args, &edit_ctx).await,
         Commands::ClearCollateralOutput(args) => {
             clear_collateral_output::run(args, &edit_ctx).await
