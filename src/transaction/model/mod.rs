@@ -1,5 +1,6 @@
 use core::fmt;
 
+use pallas::crypto::hash::Hash;
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
@@ -26,6 +27,14 @@ impl<'de> Deserialize<'de> for Hash32 {
         D: Deserializer<'de>,
     {
         deserializer.deserialize_str(Hash32Visitor)
+    }
+}
+
+impl From<Hash<32>> for Hash32 {
+    fn from(value: Hash<32>) -> Self {
+        let mut hash32: Hash32 = Hash32([0; 32]);
+        hash32.0.copy_from_slice(value.as_slice());
+        hash32
     }
 }
 

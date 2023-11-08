@@ -25,7 +25,7 @@ pub struct StagingTransaction {
     pub collateral_output: Option<CollateralOutput>,
     pub disclosed_signers: Option<Vec<PubKeyHash>>,
     pub scripts: Option<Vec<Script>>,
-    pub datums: Option<Vec<DatumBytes>>,
+    pub datums: Option<HashMap<DatumHash, DatumBytes>>,
     pub redeemers: Option<Redeemers>,
     pub signature_amount_override: Option<u8>,
     pub change_address: Option<Address>,
@@ -43,6 +43,7 @@ pub type PubKeyHash = Hash28;
 pub type ScriptHash = Hash28;
 pub type ScriptBytes = Bytes;
 pub type PolicyId = ScriptHash;
+pub type DatumHash = Hash32;
 pub type DatumBytes = Bytes;
 pub type AssetName = Bytes;
 
@@ -424,6 +425,9 @@ mod tests {
 
     #[test]
     fn json_roundtrip() {
+        let mut datums: HashMap<DatumHash, DatumBytes> = HashMap::new();
+        datums.insert(Hash32([0; 32]), Bytes([0; 100].to_vec()));
+
         let tx = StagingTransaction {
             version: String::from("v1"),
             inputs: Some(
@@ -483,7 +487,7 @@ mod tests {
             scripts: Some(vec![
                 Script { kind: ScriptKind::PlutusV1, bytes: Bytes([0; 100].to_vec()) }
             ]),
-            datums: Some(vec![Bytes([0; 100].to_vec())]),
+            datums: Some(datums),
             redeemers: Some(Redeemers(vec![
                 (RedeemerPurpose::Spend(Hash32([4; 32]), 0), Some(ExUnits { mem: 1337, steps: 7331 })),
                 (RedeemerPurpose::Mint(Hash28([5; 28])), None),
