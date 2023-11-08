@@ -249,6 +249,11 @@ pub struct Script {
     pub kind: ScriptKind,
     pub bytes: ScriptBytes,
 }
+impl Script {
+    pub fn new(kind: ScriptKind, bytes: ScriptBytes) -> Self {
+        Self { kind, bytes }
+    }
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
