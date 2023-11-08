@@ -10,10 +10,10 @@ use super::common::with_staging_tx;
 
 #[derive(Parser)]
 pub struct Args {
-    /// datum bytes
+    /// hex datum bytes
     #[arg(long, action)]
     hex: Option<String>,
-    /// datum file path
+    /// file path datum bytes
     #[arg(long, action)]
     file: Option<PathBuf>,
 }
