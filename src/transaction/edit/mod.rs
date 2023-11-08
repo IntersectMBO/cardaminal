@@ -150,7 +150,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::AddOutput(args) => add_output::run(args, &edit_ctx).await,
         Commands::RemoveOutput(args) => remove_output::run(args, &edit_ctx).await,
         Commands::SetFee(args) => set_fee::run(args, &edit_ctx).await,
-        Commands::ClearFee(args) => clear_fee::run(args).await,
+        Commands::ClearFee(args) => clear_fee::run(args, &edit_ctx).await,
         Commands::AddMint(args) => add_mint::run(args, &edit_ctx).await,
         Commands::RemoveMint(args) => remove_mint::run(args, &edit_ctx).await,
         Commands::SetTtl(args) => set_ttl::run(args).await,

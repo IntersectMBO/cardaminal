@@ -1,13 +1,16 @@
 use clap::Parser;
 use tracing::instrument;
 
-#[derive(Parser)]
-pub struct Args {
-    /// transaction id
-    tx_id: String,
-}
+use super::common::with_staging_tx;
 
-#[instrument("clear", skip_all, fields())]
-pub async fn run(_args: Args) -> miette::Result<()> {
-    Ok(())
+#[derive(Parser)]
+pub struct Args {}
+
+#[instrument("clear fee", skip_all)]
+pub async fn run(_args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
+    with_staging_tx(ctx, move |mut tx| {
+        tx.fee = None;
+        tx
+    })
+    .await
 }
