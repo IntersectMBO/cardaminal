@@ -14,7 +14,6 @@ mod add_signature;
 mod clear_change_address;
 mod clear_collateral_output;
 mod clear_fee;
-mod clear_network;
 mod clear_signer_amount;
 mod clear_ttl;
 mod clear_valid_hereafter;
@@ -32,7 +31,6 @@ mod remove_signature;
 mod set_change_address;
 mod set_collateral_output;
 mod set_fee;
-mod set_network;
 mod set_signer_amount;
 mod set_ttl;
 mod set_valid_hereafter;
@@ -86,10 +84,6 @@ enum Commands {
     SetValidHereafter(set_valid_hereafter::Args),
     /// clear the transaction valid hereafter
     ClearValidHereafter(clear_valid_hereafter::Args),
-    /// set the network for the transaction
-    SetNetwork(set_network::Args),
-    /// clear the transaction network
-    ClearNetwork(clear_network::Args),
     /// adds a collateral input
     AddCollateralInput(add_collateral_input::Args),
     /// removes a collateral input
@@ -145,7 +139,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
         Commands::AddInput(args) => add_input::run(args, &edit_ctx).await,
         Commands::RemoveInput(args) => remove_input::run(args, &edit_ctx).await,
-        Commands::AddReferenceInput(args) => add_reference_input::run(args).await,
+        Commands::AddReferenceInput(args) => add_reference_input::run(args, &edit_ctx).await,
         Commands::RemoveReferenceInput(args) => remove_reference_input::run(args).await,
         Commands::AddOutput(args) => add_output::run(args, &edit_ctx).await,
         Commands::RemoveOutput(args) => remove_output::run(args, &edit_ctx).await,
@@ -157,10 +151,10 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::ClearTtl(args) => clear_ttl::run(args).await,
         Commands::SetValidHereafter(args) => set_valid_hereafter::run(args, &edit_ctx).await,
         Commands::ClearValidHereafter(args) => clear_valid_hereafter::run(args, &edit_ctx).await,
-        Commands::SetNetwork(args) => set_network::run(args).await,
-        Commands::ClearNetwork(args) => clear_network::run(args).await,
         Commands::AddCollateralInput(args) => add_collateral_input::run(args, &edit_ctx).await,
-        Commands::RemoveCollateralInput(args) => remove_collateral_input::run(args, &edit_ctx).await,
+        Commands::RemoveCollateralInput(args) => {
+            remove_collateral_input::run(args, &edit_ctx).await
+        }
         Commands::SetCollateralOutput(args) => set_collateral_output::run(args, &edit_ctx).await,
         Commands::ClearCollateralOutput(args) => {
             clear_collateral_output::run(args, &edit_ctx).await

@@ -25,7 +25,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
             .iter()
             .any(|i| i.tx_hash.eq(&utxo_hash) && i.tx_index.eq(&utxo_idx))
         {
-            bail!("input already exists")
+            bail!("input already added")
         }
 
         let input = Input::new(utxo_hash, utxo_idx);
