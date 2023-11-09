@@ -140,7 +140,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::AddInput(args) => add_input::run(args, &edit_ctx).await,
         Commands::RemoveInput(args) => remove_input::run(args, &edit_ctx).await,
         Commands::AddReferenceInput(args) => add_reference_input::run(args, &edit_ctx).await,
-        Commands::RemoveReferenceInput(args) => remove_reference_input::run(args).await,
+        Commands::RemoveReferenceInput(args) => remove_reference_input::run(args, &edit_ctx).await,
         Commands::AddOutput(args) => add_output::run(args, &edit_ctx).await,
         Commands::RemoveOutput(args) => remove_output::run(args, &edit_ctx).await,
         Commands::SetFee(args) => set_fee::run(args, &edit_ctx).await,
