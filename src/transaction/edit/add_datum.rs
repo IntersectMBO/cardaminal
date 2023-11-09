@@ -52,7 +52,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
             tx.datums = Some(datums)
         }
 
-        tx
+        Ok(tx)
     })
     .await
 }

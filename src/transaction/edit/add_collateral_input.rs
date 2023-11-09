@@ -28,7 +28,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
 
         tx.collateral_inputs = Some(inputs);
 
-        tx
+        Ok(tx)
     })
     .await
 }

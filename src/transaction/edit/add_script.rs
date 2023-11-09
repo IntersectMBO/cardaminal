@@ -49,7 +49,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
             tx.scripts = Some(vec![script])
         }
 
-        tx
+        Ok(tx)
     })
     .await
 }

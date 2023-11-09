@@ -38,7 +38,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
             tx.mint = (!mint_assets.0.is_empty()).then_some(mint_assets);
         }
 
-        tx
+        Ok(tx)
     })
     .await
 }

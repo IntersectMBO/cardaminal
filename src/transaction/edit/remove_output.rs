@@ -17,7 +17,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
             tx.outputs = (!outputs.is_empty()).then_some(outputs);
         }
 
-        tx
+        Ok(tx)
     })
     .await
 }

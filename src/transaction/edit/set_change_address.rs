@@ -23,7 +23,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
     with_staging_tx(ctx, move |mut tx| {
         tx.change_address = Some(address);
 
-        tx
+        Ok(tx)
     })
     .await
 }

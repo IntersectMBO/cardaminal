@@ -13,7 +13,8 @@ pub struct Args {
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
     with_staging_tx(ctx, move |mut tx| {
         tx.valid_from_slot = Some(args.slot);
-        tx
+
+        Ok(tx)
     })
     .await
 }
