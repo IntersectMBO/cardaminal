@@ -19,7 +19,7 @@ pub struct Args {
     signature: String,
 }
 
-#[instrument("add signature", skip_all, fields())]
+#[instrument("add signature", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
     let public_key: PublicKey = Bytes(
         hex::decode(args.public_key)

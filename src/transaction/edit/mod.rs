@@ -172,6 +172,6 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::SetChangeAddress(args) => set_change_address::run(args, &edit_ctx).await,
         Commands::ClearChangeAddress(args) => clear_change_address::run(args, &edit_ctx).await,
         Commands::AddSignature(args) => add_signature::run(args, &edit_ctx).await,
-        Commands::RemoveSignature(args) => remove_signature::run(args).await,
+        Commands::RemoveSignature(args) => remove_signature::run(args, &edit_ctx).await,
     }
 }
