@@ -167,7 +167,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::RemoveDatum(args) => remove_datum::run(args, &edit_ctx).await,
         Commands::AddRedeemer(args) => add_redeemer::run(args).await,
         Commands::RemoveRedeemer(args) => remove_redeemer::run(args).await,
-        Commands::SetSignerAmount(args) => set_signer_amount::run(args).await,
+        Commands::SetSignerAmount(args) => set_signer_amount::run(args, &edit_ctx).await,
         Commands::ClearSignerAmount(args) => clear_signer_amount::run(args).await,
         Commands::SetChangeAddress(args) => set_change_address::run(args, &edit_ctx).await,
         Commands::ClearChangeAddress(args) => clear_change_address::run(args, &edit_ctx).await,
