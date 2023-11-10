@@ -29,6 +29,7 @@ pub struct StagingTransaction {
     pub redeemers: Option<Redeemers>,
     pub signature_amount_override: Option<u8>,
     pub change_address: Option<Address>,
+    pub signatures: Option<HashMap<PublicKey, Signature>>,
 }
 impl StagingTransaction {
     pub fn new() -> Self {
@@ -46,6 +47,8 @@ pub type PolicyId = ScriptHash;
 pub type DatumHash = Hash32;
 pub type DatumBytes = Bytes;
 pub type AssetName = Bytes;
+pub type PublicKey = Bytes;
+pub type Signature = Bytes;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Input {
@@ -494,6 +497,12 @@ mod tests {
             ].into_iter().collect::<HashMap<_, _>>())),
             signature_amount_override: Some(5),
             change_address: Some(Address(PallasAddress::from_str("addr1g9ekml92qyvzrjmawxkh64r2w5xr6mg9ngfmxh2khsmdrcudevsft64mf887333adamant").unwrap())),
+            signatures: Some(vec![
+                (
+                    Bytes(vec![0]),
+                    Bytes(vec![0]),
+                )
+            ].into_iter().collect::<HashMap<_, _>>())
         };
 
         let serialised_tx = serde_json::to_string(&tx).unwrap();
