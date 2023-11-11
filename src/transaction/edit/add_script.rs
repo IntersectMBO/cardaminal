@@ -4,10 +4,7 @@ use clap::{Parser, ValueEnum};
 use miette::{bail, Context, IntoDiagnostic};
 use tracing::instrument;
 
-use crate::transaction::model::{
-    staging::{Script, ScriptBytes, ScriptKind},
-    Bytes,
-};
+use crate::transaction::model::staging::{Script, ScriptKind};
 
 use super::common::with_staging_tx;
 
@@ -25,23 +22,21 @@ pub struct Args {
 
 #[instrument("add script", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let script_bytes: ScriptBytes = if let Some(hex) = args.hex {
-        let bytes = hex::decode(hex)
+    let script_bytes = if let Some(hex) = args.hex {
+        hex::decode(hex)
             .into_diagnostic()
-            .context("parsing script hex to bytes")?;
-        Bytes(bytes)
+            .context("parsing script hex to bytes")?
     } else if let Some(path) = args.file {
         if !path.exists() {
             bail!("script file path not exist")
         }
-        let bytes = fs::read(path).into_diagnostic()?;
-        Bytes(bytes)
+        fs::read(path).into_diagnostic()?
     } else {
         bail!("hex or file path is required");
     };
 
     with_staging_tx(ctx, move |mut tx| {
-        let script = Script::new(args.kind.into(), script_bytes);
+        let script = Script::new(args.kind.into(), script_bytes.into());
 
         if let Some(scripts) = tx.scripts.as_mut() {
             scripts.push(script)

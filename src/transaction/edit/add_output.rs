@@ -55,7 +55,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
     };
 
     with_staging_tx(ctx, move |mut tx| {
-        let mut outputs = tx.outputs.unwrap_or(vec![]);
+        let mut outputs = tx.outputs.unwrap_or_default();
 
         let new = Output {
             address,

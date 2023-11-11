@@ -1,12 +1,10 @@
 use core::fmt;
 
-use pallas::crypto::hash::Hash;
 use serde::{
     de::{self, Visitor},
     Deserialize, Deserializer, Serialize, Serializer,
 };
 
-pub mod built;
 pub mod staging;
 
 #[derive(PartialEq, Eq, Hash, Debug, Clone)]
@@ -17,7 +15,7 @@ impl Serialize for Hash32 {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&hex::encode(&self.0))
+        serializer.serialize_str(&hex::encode(self.0))
     }
 }
 
@@ -30,20 +28,16 @@ impl<'de> Deserialize<'de> for Hash32 {
     }
 }
 
-impl From<Vec<u8>> for Hash32 {
-    fn from(value: Vec<u8>) -> Self {
-        let mut hash32: Hash32 = Hash32([0; 32]);
-        hash32.0.copy_from_slice(value.as_slice());
-        hash32
-    }
-}
+impl TryFrom<Vec<u8>> for Hash32 {
+    type Error = miette::ErrReport;
 
-
-impl From<Hash<32>> for Hash32 {
-    fn from(value: Hash<32>) -> Self {
-        let mut hash32: Hash32 = Hash32([0; 32]);
-        hash32.0.copy_from_slice(value.as_slice());
-        hash32
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        Ok(Self(
+            value
+                .as_slice()
+                .try_into()
+                .map_err(|_| miette::ErrReport::msg("hash malformed"))?,
+        ))
     }
 }
 
@@ -77,7 +71,7 @@ impl Serialize for Hash28 {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&hex::encode(&self.0))
+        serializer.serialize_str(&hex::encode(self.0))
     }
 }
 
@@ -87,6 +81,19 @@ impl<'de> Deserialize<'de> for Hash28 {
         D: Deserializer<'de>,
     {
         deserializer.deserialize_str(Hash28Visitor)
+    }
+}
+
+impl TryFrom<Vec<u8>> for Hash28 {
+    type Error = miette::ErrReport;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        Ok(Self(
+            value
+                .as_slice()
+                .try_into()
+                .map_err(|_| miette::ErrReport::msg("hash malformed"))?,
+        ))
     }
 }
 
@@ -130,6 +137,12 @@ impl<'de> Deserialize<'de> for Bytes {
         D: Deserializer<'de>,
     {
         deserializer.deserialize_str(BytesVisitor)
+    }
+}
+
+impl From<Vec<u8>> for Bytes {
+    fn from(value: Vec<u8>) -> Self {
+        Bytes(value)
     }
 }
 

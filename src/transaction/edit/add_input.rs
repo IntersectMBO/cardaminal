@@ -19,7 +19,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
     let utxo_idx = args.utxo_idx;
 
     with_staging_tx(ctx, move |mut tx| {
-        let mut inputs = tx.inputs.unwrap_or(vec![]);
+        let mut inputs = tx.inputs.unwrap_or_default();
 
         if inputs
             .iter()

@@ -8,7 +8,7 @@ use pallas::ledger::{
 };
 use tracing::instrument;
 
-use crate::transaction::model::Bytes;
+use crate::transaction::model::Hash32;
 
 use super::common::with_staging_tx;
 
@@ -41,14 +41,14 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
         .map_err(|e| miette::ErrReport::msg(e.to_string()))
         .context("datum malformed")?;
 
-    let datum_hash = plutus_datum.compute_hash();
+    let datum_hash: Hash32 = plutus_datum.compute_hash().to_vec().try_into()?;
 
     with_staging_tx(ctx, move |mut tx| {
         if let Some(datums) = tx.datums.as_mut() {
-            datums.insert(datum_hash.into(), Bytes(datum_bytes));
+            datums.insert(datum_hash, datum_bytes.into());
         } else {
             let mut datums = HashMap::new();
-            datums.insert(datum_hash.into(), Bytes(datum_bytes));
+            datums.insert(datum_hash, datum_bytes.into());
             tx.datums = Some(datums)
         }
 

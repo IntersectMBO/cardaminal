@@ -2,7 +2,7 @@ use clap::Parser;
 use miette::{Context, IntoDiagnostic};
 use tracing::instrument;
 
-use crate::transaction::model::Hash28;
+use crate::transaction::model::{Bytes, Hash28};
 
 use super::common::with_staging_tx;
 
@@ -16,15 +16,15 @@ pub struct Args {
 
 #[instrument("remove mint", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let policy = hex::decode(args.policy)
+    let policy: Hash28 = hex::decode(args.policy)
         .into_diagnostic()
-        .context("parsing policy hex")?;
-    let policy = Hash28(policy.try_into().unwrap());
+        .context("parsing policy hex")?
+        .try_into()?;
 
-    let asset = hex::decode(args.asset)
+    let asset: Bytes = hex::decode(args.asset)
         .into_diagnostic()
-        .context("parsing name hex")?;
-    let asset = crate::transaction::model::Bytes(asset);
+        .context("parsing name hex")?
+        .into();
 
     with_staging_tx(ctx, move |mut tx| {
         if let Some(mut mint_assets) = tx.mint.clone() {

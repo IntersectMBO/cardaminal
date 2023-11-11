@@ -79,21 +79,20 @@ impl TryFrom<Vec<String>> for OutputAssets {
     fn try_from(value: Vec<String>) -> Result<Self, Self::Error> {
         let mut assets: HashMap<PolicyId, HashMap<AssetName, u64>> = HashMap::new();
         for asset_string in value {
-            let parts = asset_string.split(":").collect::<Vec<&str>>();
+            let parts = asset_string.split(':').collect::<Vec<&str>>();
             if parts.len() != 3 {
                 return Err(miette::ErrReport::msg("invalid asset string format"));
             }
 
-            let policy = hex::decode(parts[0])
+            let policy: Hash28 = hex::decode(parts[0])
                 .into_diagnostic()
-                .context("parsing policy hex")?;
+                .context("parsing policy hex")?
+                .try_into()?;
 
-            let policy = Hash28(policy.try_into().unwrap());
-
-            let asset = hex::decode(parts[1])
+            let asset: Bytes = hex::decode(parts[1])
                 .into_diagnostic()
-                .context("parsing name hex")?;
-            let asset = crate::transaction::model::Bytes(asset);
+                .context("parsing name hex")?
+                .into();
 
             let amount = parts[2]
                 .parse::<u64>()
@@ -287,9 +286,9 @@ impl Serialize for RedeemerPurpose {
     {
         let str = match self {
             RedeemerPurpose::Spend(hash, index) => {
-                format!("spend:{}#{}", hex::encode(&hash.0), index)
+                format!("spend:{}#{}", hex::encode(hash.0), index)
             }
-            RedeemerPurpose::Mint(hash) => format!("mint:{}", hex::encode(&hash.0)),
+            RedeemerPurpose::Mint(hash) => format!("mint:{}", hex::encode(hash.0)),
         };
 
         serializer.serialize_str(&str)
@@ -319,13 +318,13 @@ impl<'de> Visitor<'de> for RedeemerPurposeVisitor {
         E: de::Error,
     {
         let (tag, item) = v
-            .split_once(":")
+            .split_once(':')
             .ok_or(E::custom("invalid redeemer purpose"))?;
 
         match tag {
             "spend" => {
                 let (hash, index) = item
-                    .split_once("#")
+                    .split_once('#')
                     .ok_or(E::custom("invalid spend redeemer item"))?;
 
                 let hash = Hash32(

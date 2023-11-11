@@ -17,7 +17,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
     let datum_hash: Hash32 = hex::decode(args.datum_hash)
         .into_diagnostic()
         .context("parsing datum hash hex")?
-        .into();
+        .try_into()?;
 
     with_staging_tx(ctx, move |mut tx| {
         if let Some(mut datums) = tx.datums {
