@@ -160,7 +160,9 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
             clear_collateral_output::run(args, &edit_ctx).await
         }
         Commands::AddDisclosedSigner(args) => add_disclosed_signer::run(args, &edit_ctx).await,
-        Commands::RemoveDisclosedSigner(args) => remove_disclosed_signer::run(args).await,
+        Commands::RemoveDisclosedSigner(args) => {
+            remove_disclosed_signer::run(args, &edit_ctx).await
+        }
         Commands::AddScript(args) => add_script::run(args, &edit_ctx).await,
         Commands::RemoveScript(args) => remove_script::run(args).await,
         Commands::AddDatum(args) => add_datum::run(args, &edit_ctx).await,
