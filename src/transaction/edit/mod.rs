@@ -148,7 +148,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::AddMint(args) => add_mint::run(args, &edit_ctx).await,
         Commands::RemoveMint(args) => remove_mint::run(args, &edit_ctx).await,
         Commands::SetTtl(args) => set_ttl::run(args, &edit_ctx).await,
-        Commands::ClearTtl(args) => clear_ttl::run(args).await,
+        Commands::ClearTtl(args) => clear_ttl::run(args, &edit_ctx).await,
         Commands::SetValidHereafter(args) => set_valid_hereafter::run(args, &edit_ctx).await,
         Commands::ClearValidHereafter(args) => clear_valid_hereafter::run(args, &edit_ctx).await,
         Commands::AddCollateralInput(args) => add_collateral_input::run(args, &edit_ctx).await,
