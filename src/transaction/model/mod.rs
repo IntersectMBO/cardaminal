@@ -14,10 +14,16 @@ pub enum TransactionStatus {
 #[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Hash32([u8; 32]);
 
-#[derive(PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Hash28([u8; 28]);
 
-#[derive(PartialEq, Eq, Hash, Debug)]
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Bytes(Vec<u8>);
+
+impl Into<pallas::codec::utils::Bytes> for Bytes {
+    fn into(self) -> pallas::codec::utils::Bytes {
+        self.0.into()
+    }
+}
 
 type TxHash = Hash32;
