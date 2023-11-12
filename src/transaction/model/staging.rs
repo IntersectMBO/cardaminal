@@ -21,9 +21,8 @@ use pallas::{
 
 use pallas::txbuilder::transaction as txb;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, ops::Deref};
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 use super::{Bytes, Hash28, Hash32, TransactionStatus, TxHash};
@@ -31,6 +30,7 @@ use super::{Bytes, Hash28, Hash32, TransactionStatus, TxHash};
 #[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct StagingTransaction {
     version: String,
+    pub status: TransactionStatus,
     pub inputs: Option<Vec<Input>>,
     pub reference_inputs: Option<Vec<Input>>,
     pub outputs: Option<Vec<Output>>,
@@ -53,6 +53,7 @@ impl StagingTransaction {
     pub fn new() -> Self {
         Self {
             version: String::from("v1"),
+            status: TransactionStatus::Staging,
             ..Default::default()
         }
     }
@@ -139,10 +140,24 @@ struct ExUnits {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Redeemers(HashMap<RedeemerPurpose, (PlutusData, Option<ExUnits>)>);
+pub struct Redeemers(HashMap<RedeemerPurpose, (PlutusData, Option<ExUnits>)>);
 
 #[derive(PartialEq, Eq, Debug)]
 pub struct Address(pub PallasAddress);
+
+impl Deref for Address {
+    type Target = PallasAddress;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<PallasAddress> for Address {
+    fn from(value: PallasAddress) -> Self {
+        Self(value)
+    }
+}
 
 #[derive(Debug)]
 pub enum Error {
@@ -157,7 +172,7 @@ impl StagingTransaction {
             genesis_values: params,
         });
 
-        for input in self.inputs.iter() {
+        for input in self.inputs.unwrap_or_default() {
             let txin = txb::Input::build(input.tx_hash.0, input.tx_index as u64);
 
             builder = builder.input(txin, None);
@@ -329,6 +344,7 @@ mod tests {
     fn json_roundtrip() {
         let tx = StagingTransaction {
             version: String::from("v1"),
+            status: TransactionStatus::Staging,
             inputs: Some(
                 vec![
                     Input {
