@@ -3,13 +3,12 @@ use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use super::{Bytes, TransactionStatus, TxHash};
+use super::{Bytes, TxHash};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 struct BuiltTransaction {
     version: u8,
     created_at: DateTime<Utc>,
-    status: TransactionStatus,
     tx_hash: TxHash,
     tx_body: Bytes,
     signatures: Option<HashMap<PublicKey, Signature>>,
@@ -34,7 +33,6 @@ mod tests {
         let tx = BuiltTransaction {
             version: 3,
             created_at: DateTime::from_timestamp(0, 0).unwrap(),
-            status: TransactionStatus::Built,
             tx_hash: Hash32([0; 32]),
             tx_body: Bytes([6; 100].to_vec()),
             signatures: Some(

@@ -28,50 +28,61 @@ use serde::{Deserialize, Serialize};
 
 use super::{Bytes, Hash28, Hash32, TransactionStatus, TxHash};
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct StagingTransaction {
-    version: u8,
-    created_at: DateTime<Utc>,
-    status: TransactionStatus,
-    inputs: Vec<Input>,
-    reference_inputs: Option<Vec<Input>>,
-    outputs: Option<Vec<Output>>,
-    fee: Option<u64>,
-    mint: Option<MintAssets>,
-    valid_from_slot: Option<u64>,
-    invalid_from_slot: Option<u64>,
-    network_id: Option<u32>,
-    collateral_inputs: Option<Vec<Input>>,
-    collateral_output: Option<CollateralOutput>,
-    disclosed_signers: Option<Vec<PubKeyHash>>,
-    scripts: Option<Vec<Script>>,
-    datums: Option<Vec<DatumBytes>>,
-    redeemers: Option<Redeemers>,
-    script_data_hash: Option<Hash32>,
-    signature_amount_override: Option<u8>,
-    change_address: Option<Address>,
+#[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
+pub struct StagingTransaction {
+    version: String,
+    pub inputs: Option<Vec<Input>>,
+    pub reference_inputs: Option<Vec<Input>>,
+    pub outputs: Option<Vec<Output>>,
+    pub fee: Option<u64>,
+    pub mint: Option<MintAssets>,
+    pub valid_from_slot: Option<u64>,
+    pub invalid_from_slot: Option<u64>,
+    pub network_id: Option<u32>,
+    pub collateral_inputs: Option<Vec<Input>>,
+    pub collateral_output: Option<CollateralOutput>,
+    pub disclosed_signers: Option<Vec<PubKeyHash>>,
+    pub scripts: Option<Vec<Script>>,
+    pub datums: Option<Vec<DatumBytes>>,
+    pub redeemers: Option<Redeemers>,
+    pub script_data_hash: Option<Hash32>,
+    pub signature_amount_override: Option<u8>,
+    pub change_address: Option<Address>,
+}
+impl StagingTransaction {
+    pub fn new() -> Self {
+        Self {
+            version: String::from("v1"),
+            ..Default::default()
+        }
+    }
 }
 
-type PubKeyHash = Hash28;
-type ScriptHash = Hash28;
-type ScriptBytes = Bytes;
-type PolicyId = ScriptHash;
-type DatumBytes = Bytes;
-type AssetName = Bytes;
+pub type PubKeyHash = Hash28;
+pub type ScriptHash = Hash28;
+pub type ScriptBytes = Bytes;
+pub type PolicyId = ScriptHash;
+pub type DatumBytes = Bytes;
+pub type AssetName = Bytes;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Input {
+pub struct Input {
     tx_hash: TxHash,
     tx_index: usize,
 }
+impl Input {
+    pub fn new(tx_hash: TxHash, tx_index: usize) -> Self {
+        Self { tx_hash, tx_index }
+    }
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Output {
-    address: Address,
-    lovelace: u64,
-    assets: Option<OutputAssets>,
-    datum: Option<Datum>,
-    script: Option<Script>,
+pub struct Output {
+    pub address: Address,
+    pub lovelace: u64,
+    pub assets: Option<OutputAssets>,
+    pub datum: Option<Datum>,
+    pub script: Option<Script>,
 }
 
 #[derive(PartialEq, Eq, Debug)]
@@ -81,36 +92,36 @@ pub struct OutputAssets(pub HashMap<PolicyId, HashMap<AssetName, u64>>);
 pub struct MintAssets(pub HashMap<PolicyId, HashMap<AssetName, i64>>);
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct CollateralOutput {
-    address: Address,
-    lovelace: u64,
+pub struct CollateralOutput {
+    pub address: Address,
+    pub lovelace: u64,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone, Copy)]
 #[serde(rename_all = "snake_case")]
-enum ScriptKind {
+pub enum ScriptKind {
     Native,
     PlutusV1,
     PlutusV2,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Script {
-    kind: ScriptKind,
-    bytes: ScriptBytes,
+pub struct Script {
+    pub kind: ScriptKind,
+    pub bytes: ScriptBytes,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 #[serde(rename_all = "snake_case")]
-enum DatumKind {
+pub enum DatumKind {
     Hash,
     Inline,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct Datum {
-    kind: DatumKind,
-    bytes: DatumBytes,
+pub struct Datum {
+    pub kind: DatumKind,
+    pub bytes: DatumBytes,
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
@@ -308,7 +319,6 @@ impl StagingTransaction {
 mod tests {
     use std::str::FromStr;
 
-    use chrono::DateTime;
     use pallas::ledger::addresses::Address as PallasAddress;
 
     use crate::transaction::model::Hash32;
@@ -318,15 +328,15 @@ mod tests {
     #[test]
     fn json_roundtrip() {
         let tx = StagingTransaction {
-            version: 3,
-            created_at: DateTime::from_timestamp(0, 0).unwrap(),
-            status: TransactionStatus::Staging,
-            inputs: vec![
-                Input {
-                    tx_hash: Hash32([0; 32]),
-                    tx_index: 1
-                }
-            ],
+            version: String::from("v1"),
+            inputs: Some(
+                vec![
+                    Input {
+                        tx_hash: Hash32([0; 32]),
+                        tx_index: 1
+                    }
+                ]
+            ) ,
             reference_inputs: Some(vec![
                 Input {
                     tx_hash: Hash32([1; 32]),
@@ -387,6 +397,7 @@ mod tests {
         };
 
         let serialised_tx = serde_json::to_string(&tx).unwrap();
+        dbg!(&serialised_tx);
 
         let deserialised_tx: StagingTransaction = serde_json::from_str(&serialised_tx).unwrap();
 

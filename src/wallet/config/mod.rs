@@ -10,7 +10,7 @@ use miette::{Context, IntoDiagnostic};
 use pallas::ledger::traverse::{Era, MultiEraOutput};
 use serde::{Deserialize, Serialize};
 
-use super::dal::entities::prelude::UtxoModel;
+use super::dal::entities::utxo::Model as UtxoModel;
 use crate::utils::{deserialize_date, serialize_date, OutputFormatter};
 
 #[derive(Debug, Serialize, Deserialize)]

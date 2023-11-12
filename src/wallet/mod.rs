@@ -3,9 +3,9 @@ use tracing::instrument;
 
 mod attach;
 mod balance;
-mod config;
+pub mod config;
 mod create;
-mod dal;
+pub mod dal;
 mod detach;
 mod history;
 mod info;

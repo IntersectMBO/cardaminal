@@ -23,7 +23,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(Utxo::PaymentCred).binary_len(28).not_null())
                     .col(ColumnDef::new(Utxo::FullAddress).binary().not_null())
                     .col(ColumnDef::new(Utxo::Slot).big_unsigned().not_null())
-                    .col(ColumnDef::new(Utxo::Era).unsigned().not_null())
+                    .col(ColumnDef::new(Utxo::Era).small_unsigned().not_null())
                     .col(ColumnDef::new(Utxo::Cbor).binary().not_null())
                     .to_owned(),
             )

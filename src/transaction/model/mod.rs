@@ -26,4 +26,16 @@ impl Into<pallas::codec::utils::Bytes> for Bytes {
     }
 }
 
-type TxHash = Hash32;
+pub type TxHash = Hash32;
+impl TryFrom<String> for TxHash {
+    type Error = miette::ErrReport;
+
+    fn try_from(value: String) -> Result<Self, Self::Error> {
+        Ok(Hash32(
+            hex::decode(value)
+                .map_err(|_| miette::miette!("invalid hex"))?
+                .try_into()
+                .map_err(|_| miette::miette!("invalid length"))?,
+        ))
+    }
+}
