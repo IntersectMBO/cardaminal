@@ -7,6 +7,8 @@ use sea_orm::entity::prelude::*;
 pub enum Status {
     #[sea_orm(string_value = "staging")]
     Staging,
+    #[sea_orm(string_value = "built")]
+    Built,
     #[sea_orm(string_value = "signed")]
     Signed,
     #[sea_orm(string_value = "submitted")]
@@ -39,6 +41,7 @@ impl Display for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Status::Staging => write!(f, "Staging"),
+            Status::Built => write!(f, "Built"),
             Status::Signed => write!(f, "Signed"),
             Status::Submitted => write!(f, "Submitted"),
             Status::Minted => write!(f, "Minted"),
