@@ -21,7 +21,7 @@ pub struct Addresses {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Keys {
-    pub public: String,
+    pub public_key_hash: String,
     pub private_encrypted: String,
 }
 
@@ -112,7 +112,7 @@ impl OutputFormatter for Wallet {
             "Chain",
             &self.chain.as_deref().unwrap_or("not attached"),
         ]);
-        table.add_row(vec!["Public Key", &self.keys.public]);
+        table.add_row(vec!["Public Key Hash", &self.keys.public_key_hash]);
         table.add_row(vec!["Address (mainnet)", &self.addresses.mainnet]);
         table.add_row(vec!["Address (testnet)", &self.addresses.testnet]);
 

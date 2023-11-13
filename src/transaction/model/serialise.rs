@@ -11,10 +11,10 @@ use serde::{
 use super::{
     built::Bytes64,
     staging::{Address, MintAssets, OutputAssets, RedeemerPurpose},
-    Bytes, Hash28, Hash32,
+    Bytes, Bytes32, Hash28,
 };
 
-impl Serialize for Hash32 {
+impl Serialize for Bytes32 {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: Serializer,
@@ -23,19 +23,19 @@ impl Serialize for Hash32 {
     }
 }
 
-impl<'de> Deserialize<'de> for Hash32 {
-    fn deserialize<D>(deserializer: D) -> Result<Hash32, D::Error>
+impl<'de> Deserialize<'de> for Bytes32 {
+    fn deserialize<D>(deserializer: D) -> Result<Bytes32, D::Error>
     where
         D: Deserializer<'de>,
     {
-        deserializer.deserialize_str(Hash32Visitor)
+        deserializer.deserialize_str(Bytes32Visitor)
     }
 }
 
-struct Hash32Visitor;
+struct Bytes32Visitor;
 
-impl<'de> Visitor<'de> for Hash32Visitor {
-    type Value = Hash32;
+impl<'de> Visitor<'de> for Bytes32Visitor {
+    type Value = Bytes32;
 
     fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
         formatter.write_str("32 bytes hex encoded")
@@ -45,7 +45,7 @@ impl<'de> Visitor<'de> for Hash32Visitor {
     where
         E: de::Error,
     {
-        Ok(Hash32(
+        Ok(Bytes32(
             hex::decode(v)
                 .map_err(|_| E::custom("invalid hex"))?
                 .try_into()
@@ -287,7 +287,7 @@ impl<'de> Visitor<'de> for RedeemerPurposeVisitor {
                     .split_once("#")
                     .ok_or(E::custom("invalid spend redeemer item"))?;
 
-                let hash = Hash32(
+                let hash = Bytes32(
                     hex::decode(hash)
                         .map_err(|_| E::custom("invalid spend redeemer item txid hex"))?
                         .try_into()

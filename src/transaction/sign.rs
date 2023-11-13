@@ -10,7 +10,7 @@ use tracing::{info, instrument};
 use crate::{
     transaction::model::{
         built::{BuiltTransaction, Bytes64},
-        Bytes,
+        Bytes, Bytes32,
     },
     wallet::{
         config::Wallet,
@@ -33,10 +33,10 @@ pub fn gather_inputs(args: &mut Args) -> miette::Result<()> {
 
 #[derive(Parser)]
 pub struct Args {
-    /// transaction id
-    id: i32,
     /// wallet name
     wallet: String,
+    /// transaction id
+    id: i32,
 
     /// wallet password for signature
     #[arg(long, short, action)]
@@ -46,7 +46,7 @@ pub struct Args {
     interactive: bool,
 }
 
-#[instrument("build", skip_all, fields())]
+#[instrument("sign", skip_all, fields())]
 pub async fn run(mut args: Args, ctx: &crate::Context) -> miette::Result<()> {
     if args.interactive {
         gather_inputs(&mut args)?;
@@ -87,7 +87,7 @@ pub async fn run(mut args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
     let privkey = ed25519::SecretKey::from(privkey);
 
-    let pubkey: [u8; 64] = privkey
+    let pubkey: [u8; 32] = privkey
         .public_key()
         .as_ref()
         .try_into()
@@ -103,7 +103,7 @@ pub async fn run(mut args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
     let mut new_sigs = built_tx.signatures.unwrap_or_default();
 
-    new_sigs.insert(Bytes64(pubkey), Bytes64(signature));
+    new_sigs.insert(Bytes32(pubkey), Bytes64(signature));
 
     built_tx.signatures = Some(new_sigs);
 

@@ -24,7 +24,7 @@ use std::{collections::HashMap, ops::Deref};
 
 use serde::{Deserialize, Serialize};
 
-use super::{built::BuiltTransaction, Bytes, Hash28, Hash32, TransactionStatus, TxHash};
+use super::{built::BuiltTransaction, Bytes, Bytes32, Hash28, TransactionStatus, TxHash};
 
 #[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct StagingTransaction {
@@ -44,7 +44,7 @@ pub struct StagingTransaction {
     pub scripts: Option<Vec<Script>>,
     pub datums: Option<Vec<DatumBytes>>,
     pub redeemers: Option<Redeemers>,
-    pub script_data_hash: Option<Hash32>,
+    pub script_data_hash: Option<Bytes32>,
     pub signature_amount_override: Option<u8>,
     pub change_address: Option<Address>,
 }
@@ -328,7 +328,7 @@ impl StagingTransaction {
 
         Ok(BuiltTransaction {
             version: self.version,
-            tx_hash: Hash32(*pallas_tx.body.compute_hash()),
+            tx_hash: Bytes32(*pallas_tx.body.compute_hash()),
             tx_bytes: Bytes(pallas_tx.encode_fragment().unwrap()),
             signatures: None,
         })
@@ -341,7 +341,7 @@ mod tests {
 
     use pallas::ledger::addresses::Address as PallasAddress;
 
-    use crate::transaction::model::Hash32;
+    use crate::transaction::model::Bytes32;
 
     use super::*;
 
@@ -353,14 +353,14 @@ mod tests {
             inputs: Some(
                 vec![
                     Input {
-                        tx_hash: Hash32([0; 32]),
+                        tx_hash: Bytes32([0; 32]),
                         tx_index: 1
                     }
                 ]
             ) ,
             reference_inputs: Some(vec![
                 Input {
-                    tx_hash: Hash32([1; 32]),
+                    tx_hash: Bytes32([1; 32]),
                     tx_index: 0
                 }
             ]),
@@ -398,7 +398,7 @@ mod tests {
             network_id: Some(1),
             collateral_inputs: Some(vec![
                 Input {
-                    tx_hash: Hash32([2; 32]),
+                    tx_hash: Bytes32([2; 32]),
                     tx_index: 0
                 }
             ]),
@@ -409,12 +409,12 @@ mod tests {
             ]),
             datums: Some(vec![Bytes([0; 100].to_vec())]),
             redeemers: Some(Redeemers(vec![
-                (RedeemerPurpose::Spend(Hash32([4; 32]), 0), (PlutusData::Array(vec![]), Some(ExUnits { mem: 1337, steps: 7331 }))),
+                (RedeemerPurpose::Spend(Bytes32([4; 32]), 0), (PlutusData::Array(vec![]), Some(ExUnits { mem: 1337, steps: 7331 }))),
                 (RedeemerPurpose::Mint(Hash28([5; 28])), (PlutusData::Array(vec![]), None)),
             ].into_iter().collect::<HashMap<_, _>>())),
             signature_amount_override: Some(5),
             change_address: Some(Address(PallasAddress::from_str("addr1g9ekml92qyvzrjmawxkh64r2w5xr6mg9ngfmxh2khsmdrcudevsft64mf887333adamant").unwrap())),
-            script_data_hash: Some(Hash32([0; 32])),
+            script_data_hash: Some(Bytes32([0; 32])),
         };
 
         let serialised_tx = serde_json::to_string(&tx).unwrap();

@@ -13,7 +13,7 @@ pub enum TransactionStatus {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
-pub struct Hash32([u8; 32]);
+pub struct Bytes32(pub [u8; 32]);
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Hash28(pub [u8; 28]);
@@ -27,12 +27,12 @@ impl Into<pallas::codec::utils::Bytes> for Bytes {
     }
 }
 
-pub type TxHash = Hash32;
+pub type TxHash = Bytes32;
 impl TryFrom<String> for TxHash {
     type Error = miette::ErrReport;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Ok(Hash32(
+        Ok(Bytes32(
             hex::decode(value)
                 .map_err(|_| miette::miette!("invalid hex"))?
                 .try_into()

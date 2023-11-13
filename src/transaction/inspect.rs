@@ -3,8 +3,11 @@ use miette::IntoDiagnostic;
 use tracing::instrument;
 
 use crate::{
-    transaction::model::staging::StagingTransaction,
-    wallet::{config::Wallet, dal::WalletDB},
+    transaction::model::{built::BuiltTransaction, staging::StagingTransaction},
+    wallet::{
+        config::Wallet,
+        dal::{entities::transaction::Status, WalletDB},
+    },
 };
 
 #[derive(Parser)]
@@ -32,10 +35,21 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .into_diagnostic()?
         .ok_or(miette::miette!("transaction doesn't exist"))?;
 
-    let staging_transaction: StagingTransaction =
-        serde_json::from_slice(&transaction.tx_json).into_diagnostic()?;
+    let json = match transaction.status {
+        Status::Staging => {
+            let staging_transaction: StagingTransaction =
+                serde_json::from_slice(&transaction.tx_json).into_diagnostic()?;
 
-    let json = serde_json::to_string_pretty(&staging_transaction).unwrap();
+            serde_json::to_string_pretty(&staging_transaction).unwrap()
+        }
+        _ => {
+            let built_transaction: BuiltTransaction =
+                serde_json::from_slice(&transaction.tx_json).into_diagnostic()?;
+
+            serde_json::to_string_pretty(&built_transaction).unwrap()
+        }
+    };
+
     println!("{json}");
 
     Ok(())
