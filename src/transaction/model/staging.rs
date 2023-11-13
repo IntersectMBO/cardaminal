@@ -8,13 +8,12 @@ use pallas::{
             },
             Fragment,
         },
-        traverse::wellknown::GenesisValues,
+        traverse::{wellknown::GenesisValues, ComputeHash},
     },
     txbuilder::{
         self as Txb,
         plutus_script::RedeemerPurpose as TxbRedeemerPurpose,
         prelude::{MultiAsset, TransactionBuilder},
-        transaction::Transaction,
         NetworkParams,
     },
 };
@@ -25,7 +24,7 @@ use std::{collections::HashMap, ops::Deref};
 
 use serde::{Deserialize, Serialize};
 
-use super::{Bytes, Hash28, Hash32, TransactionStatus, TxHash};
+use super::{built::BuiltTransaction, Bytes, Hash28, Hash32, TransactionStatus, TxHash};
 
 #[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct StagingTransaction {
@@ -167,7 +166,7 @@ pub enum Error {
 }
 
 impl StagingTransaction {
-    pub fn build(self, params: GenesisValues) -> Result<Transaction, Error> {
+    pub fn build(self, params: GenesisValues) -> Result<BuiltTransaction, Error> {
         let mut builder = TransactionBuilder::new(NetworkParams {
             genesis_values: params,
         });
@@ -312,9 +311,8 @@ impl StagingTransaction {
                         let rp = TxbRedeemerPurpose::Mint(pid.0.into());
 
                         builder = builder.redeemer(rp, pd, ex_units)
-                    }
-                    // RedeemerPurpose:: TODO
-                    // RedeemerPurpose:: TODO
+                    } // RedeemerPurpose:: TODO
+                      // RedeemerPurpose:: TODO
                 };
             }
         };
@@ -326,7 +324,14 @@ impl StagingTransaction {
         // signature_amount_override: Option<u8>, // TODO
         // change_address: Option<Address>, // TODO
 
-        builder.build().map_err(Error::ValidationError)
+        let pallas_tx = builder.build().map_err(Error::ValidationError)?;
+
+        Ok(BuiltTransaction {
+            version: self.version,
+            tx_hash: Hash32(*pallas_tx.body.compute_hash()),
+            tx_bytes: Bytes(pallas_tx.encode_fragment().unwrap()),
+            signatures: None,
+        })
     }
 }
 
