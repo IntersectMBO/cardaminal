@@ -1,3 +1,6 @@
+use core::fmt;
+use miette::{Context, IntoDiagnostic};
+use pallas::ledger::addresses::Address as PallasAddress;
 use pallas::{
     ledger::{
         addresses::Address as PallasAddress,
@@ -16,6 +19,11 @@ use pallas::{
         prelude::{MultiAsset, TransactionBuilder},
         NetworkParams,
     },
+};
+use serde::{
+    de::{self, Visitor},
+    ser::SerializeMap,
+    Deserialize, Deserializer, Serialize, Serializer,
 };
 
 use pallas::txbuilder::transaction as txb;
@@ -42,11 +50,12 @@ pub struct StagingTransaction {
     pub collateral_output: Option<CollateralOutput>,
     pub disclosed_signers: Option<Vec<PubKeyHash>>,
     pub scripts: Option<Vec<Script>>,
-    pub datums: Option<Vec<DatumBytes>>,
+    pub datums: Option<HashMap<DatumHash, DatumBytes>>,
     pub redeemers: Option<Redeemers>,
     pub script_data_hash: Option<Hash32>,
     pub signature_amount_override: Option<u8>,
     pub change_address: Option<Address>,
+    pub signatures: Option<HashMap<PublicKey, Signature>>,
 }
 impl StagingTransaction {
     pub fn new() -> Self {
@@ -62,13 +71,16 @@ pub type PubKeyHash = Hash28;
 pub type ScriptHash = Hash28;
 pub type ScriptBytes = Bytes;
 pub type PolicyId = ScriptHash;
+pub type DatumHash = Hash32;
 pub type DatumBytes = Bytes;
 pub type AssetName = Bytes;
+pub type PublicKey = Bytes;
+pub type Signature = Bytes;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Input {
-    tx_hash: TxHash,
-    tx_index: usize,
+    pub tx_hash: TxHash,
+    pub tx_index: usize,
 }
 impl Input {
     pub fn new(tx_hash: TxHash, tx_index: usize) -> Self {
@@ -76,7 +88,7 @@ impl Input {
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Output {
     pub address: Address,
     pub lovelace: u64,
@@ -88,7 +100,109 @@ pub struct Output {
 #[derive(PartialEq, Eq, Debug)]
 pub struct OutputAssets(pub HashMap<PolicyId, HashMap<AssetName, u64>>);
 
-#[derive(PartialEq, Eq, Debug)]
+impl TryFrom<Vec<String>> for OutputAssets {
+    type Error = miette::ErrReport;
+
+    fn try_from(value: Vec<String>) -> Result<Self, Self::Error> {
+        let mut assets: HashMap<PolicyId, HashMap<AssetName, u64>> = HashMap::new();
+        for asset_string in value {
+            let parts = asset_string.split(':').collect::<Vec<&str>>();
+            if parts.len() != 3 {
+                return Err(miette::ErrReport::msg("invalid asset string format"));
+            }
+
+            let policy: Hash28 = hex::decode(parts[0])
+                .into_diagnostic()
+                .context("parsing policy hex")?
+                .try_into()?;
+
+            let asset: Bytes = hex::decode(parts[1])
+                .into_diagnostic()
+                .context("parsing name hex")?
+                .into();
+
+            let amount = parts[2]
+                .parse::<u64>()
+                .into_diagnostic()
+                .context("parsing amount u64")?;
+
+            assets
+                .entry(policy)
+                .and_modify(|policy_map| {
+                    policy_map
+                        .entry(asset.clone())
+                        .and_modify(|asset_map| {
+                            *asset_map += amount;
+                        })
+                        .or_insert(amount);
+                })
+                .or_insert_with(|| {
+                    let mut map: HashMap<AssetName, u64> = HashMap::new();
+                    map.insert(asset.clone(), amount);
+                    map
+                });
+        }
+
+        Ok(OutputAssets(assets))
+    }
+}
+
+impl Serialize for OutputAssets {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut map = serializer.serialize_map(Some(self.0.len()))?;
+
+        for (policy, assets) in self.0.iter() {
+            let mut assets_map: HashMap<String, u64> = HashMap::new();
+
+            for (asset, amount) in assets {
+                assets_map.insert(hex::encode(&asset.0), *amount);
+            }
+
+            map.serialize_entry(policy, &assets_map)?;
+        }
+
+        map.end()
+    }
+}
+
+impl<'de> Deserialize<'de> for OutputAssets {
+    fn deserialize<D>(deserializer: D) -> Result<OutputAssets, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_map(OutputAssetsVisitor)
+    }
+}
+
+struct OutputAssetsVisitor;
+
+impl<'de> Visitor<'de> for OutputAssetsVisitor {
+    type Value = OutputAssets;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str(
+            "map of hex encoded policy ids to map of hex encoded asset names to u64 amounts",
+        )
+    }
+
+    fn visit_map<A>(self, mut access: A) -> Result<Self::Value, A::Error>
+    where
+        A: de::MapAccess<'de>,
+    {
+        let mut out_map = HashMap::new();
+
+        while let Some((key, value)) = access.next_entry()? {
+            out_map.insert(key, value);
+        }
+
+        Ok(OutputAssets(out_map))
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct MintAssets(pub HashMap<PolicyId, HashMap<AssetName, i64>>);
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -105,20 +219,25 @@ pub enum ScriptKind {
     PlutusV2,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Script {
     pub kind: ScriptKind,
     pub bytes: ScriptBytes,
 }
+impl Script {
+    pub fn new(kind: ScriptKind, bytes: ScriptBytes) -> Self {
+        Self { kind, bytes }
+    }
+}
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum DatumKind {
     Hash,
     Inline,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Datum {
     pub kind: DatumKind,
     pub bytes: DatumBytes,
@@ -130,6 +249,81 @@ pub enum RedeemerPurpose {
     Mint(PolicyId),
     // Reward TODO
     // Cert TODO
+}
+
+impl Serialize for RedeemerPurpose {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let str = match self {
+            RedeemerPurpose::Spend(hash, index) => {
+                format!("spend:{}#{}", hex::encode(hash.0), index)
+            }
+            RedeemerPurpose::Mint(hash) => format!("mint:{}", hex::encode(hash.0)),
+        };
+
+        serializer.serialize_str(&str)
+    }
+}
+
+impl<'de> Deserialize<'de> for RedeemerPurpose {
+    fn deserialize<D>(deserializer: D) -> Result<RedeemerPurpose, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        deserializer.deserialize_str(RedeemerPurposeVisitor)
+    }
+}
+
+struct RedeemerPurposeVisitor;
+
+impl<'de> Visitor<'de> for RedeemerPurposeVisitor {
+    type Value = RedeemerPurpose;
+
+    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+        formatter.write_str("'spend:{hex_txid}#{index}' or 'mint:{hex_policyid}'")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: de::Error,
+    {
+        let (tag, item) = v
+            .split_once(':')
+            .ok_or(E::custom("invalid redeemer purpose"))?;
+
+        match tag {
+            "spend" => {
+                let (hash, index) = item
+                    .split_once('#')
+                    .ok_or(E::custom("invalid spend redeemer item"))?;
+
+                let hash = Hash32(
+                    hex::decode(hash)
+                        .map_err(|_| E::custom("invalid spend redeemer item txid hex"))?
+                        .try_into()
+                        .map_err(|_| E::custom("invalid spend redeemer txid len"))?,
+                );
+                let index = index
+                    .parse()
+                    .map_err(|_| E::custom("invalid spend redeemer item index"))?;
+
+                Ok(RedeemerPurpose::Spend(hash, index))
+            }
+            "mint" => {
+                let hash = Hash28(
+                    hex::decode(item)
+                        .map_err(|_| E::custom("invalid mint redeemer item policy hex"))?
+                        .try_into()
+                        .map_err(|_| E::custom("invalid mint redeemer policy len"))?,
+                );
+
+                Ok(RedeemerPurpose::Mint(hash))
+            }
+            _ => Err(E::custom("invalid redeemer tag")),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -311,8 +505,8 @@ impl StagingTransaction {
                         let rp = TxbRedeemerPurpose::Mint(pid.0.into());
 
                         builder = builder.redeemer(rp, pd, ex_units)
-                    } // RedeemerPurpose:: TODO
-                      // RedeemerPurpose:: TODO
+                    } /* RedeemerPurpose:: TODO
+                       * RedeemerPurpose:: TODO */
                 };
             }
         };
@@ -347,6 +541,9 @@ mod tests {
 
     #[test]
     fn json_roundtrip() {
+        let mut datums: HashMap<DatumHash, DatumBytes> = HashMap::new();
+        datums.insert(Hash32([0; 32]), Bytes([0; 100].to_vec()));
+
         let tx = StagingTransaction {
             version: String::from("v1"),
             status: TransactionStatus::Staging,
@@ -407,7 +604,7 @@ mod tests {
             scripts: Some(vec![
                 Script { kind: ScriptKind::PlutusV1, bytes: Bytes([0; 100].to_vec()) }
             ]),
-            datums: Some(vec![Bytes([0; 100].to_vec())]),
+            datums: Some(datums),
             redeemers: Some(Redeemers(vec![
                 (RedeemerPurpose::Spend(Hash32([4; 32]), 0), (PlutusData::Array(vec![]), Some(ExUnits { mem: 1337, steps: 7331 }))),
                 (RedeemerPurpose::Mint(Hash28([5; 28])), (PlutusData::Array(vec![]), None)),
@@ -415,6 +612,12 @@ mod tests {
             signature_amount_override: Some(5),
             change_address: Some(Address(PallasAddress::from_str("addr1g9ekml92qyvzrjmawxkh64r2w5xr6mg9ngfmxh2khsmdrcudevsft64mf887333adamant").unwrap())),
             script_data_hash: Some(Hash32([0; 32])),
+            signatures: Some(vec![
+                (
+                    Bytes(vec![0]),
+                    Bytes(vec![0]),
+                )
+            ].into_iter().collect::<HashMap<_, _>>())
         };
 
         let serialised_tx = serde_json::to_string(&tx).unwrap();
