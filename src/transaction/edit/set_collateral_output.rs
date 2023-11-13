@@ -29,7 +29,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
 
         tx.collateral_output = Some(new);
 
-        tx
+        Ok(tx)
     })
     .await
 }

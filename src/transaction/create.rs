@@ -1,6 +1,6 @@
 use clap::Parser;
 use miette::IntoDiagnostic;
-use tracing::instrument;
+use tracing::{info, instrument};
 
 use super::model::staging::StagingTransaction;
 use crate::wallet::{config::Wallet, dal::WalletDB};
@@ -29,7 +29,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .await
         .into_diagnostic()?;
 
-    println!("{id}");
+    info!(id, "transaction created");
 
     Ok(())
 }

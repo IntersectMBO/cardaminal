@@ -1,5 +1,5 @@
 use clap::Parser;
-use miette::Context;
+use miette::{bail, Context};
 use tracing::instrument;
 
 use crate::transaction::{edit::common::with_staging_tx, model::staging::Input};
@@ -19,14 +19,21 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
     let utxo_idx = args.utxo_idx;
 
     with_staging_tx(ctx, move |mut tx| {
-        let mut inputs = tx.inputs.unwrap_or(vec![]);
+        let mut inputs = tx.inputs.unwrap_or_default();
+
+        if inputs
+            .iter()
+            .any(|i| i.tx_hash.eq(&utxo_hash) && i.tx_index.eq(&utxo_idx))
+        {
+            bail!("input already added")
+        }
 
         let input = Input::new(utxo_hash, utxo_idx);
         inputs.push(input);
 
         tx.inputs = Some(inputs);
 
-        tx
+        Ok(tx)
     })
     .await
 }

@@ -5,7 +5,7 @@ use miette::{Context, IntoDiagnostic};
 use tracing::instrument;
 
 use super::common::with_staging_tx;
-use crate::transaction::model::{staging::MintAssets, Hash28};
+use crate::transaction::model::{staging::MintAssets, Bytes, Hash28};
 
 #[derive(Parser)]
 pub struct Args {
@@ -19,17 +19,15 @@ pub struct Args {
 
 #[instrument("add_mint", skip_all, fields())]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let policy = hex::decode(args.policy)
+    let policy: Hash28 = hex::decode(args.policy)
         .into_diagnostic()
-        .context("parsing policy hex")?;
+        .context("parsing policy hex")?
+        .try_into()?;
 
-    let policy = Hash28(policy.try_into().unwrap());
-
-    let asset = hex::decode(args.asset)
+    let asset: Bytes = hex::decode(args.asset)
         .into_diagnostic()
-        .context("parsing name hex")?;
-
-    let asset = crate::transaction::model::Bytes(asset);
+        .context("parsing name hex")?
+        .into();
 
     let amount = args.amount;
 
@@ -43,7 +41,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
 
         tx.mint = Some(mints);
 
-        tx
+        Ok(tx)
     })
     .await
 }

@@ -11,7 +11,7 @@ pub async fn run(_args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()
     with_staging_tx(ctx, move |mut tx| {
         tx.collateral_output = None;
 
-        tx
+        Ok(tx)
     })
     .await
 }
