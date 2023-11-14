@@ -29,7 +29,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .await
         .into_diagnostic()?;
 
-    info!(id, "transaction created");
+    println!("{id}");
 
     Ok(())
 }
