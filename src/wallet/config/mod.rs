@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     fs,
     io::{BufReader, Read, Write},
     path::{Path, PathBuf},
@@ -26,12 +27,31 @@ pub struct Keys {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct SubmitApi {
+    pub url: String,
+    pub headers: HashMap<String, String>,
+}
+
+const DEFAULT_SUBMIT_API_URL: &str =
+    "https://submitapi-preprod-api-peaceful-relation-132bd4.us1.demeter.run/api/submit/tx";
+
+impl Default for SubmitApi {
+    fn default() -> Self {
+        Self {
+            url: String::from(DEFAULT_SUBMIT_API_URL),
+            headers: HashMap::default(),
+        }
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Wallet {
     pub version: String,
     pub name: String,
     pub keys: Keys,
     pub addresses: Addresses,
     pub chain: Option<String>,
+    pub submit_api: Option<SubmitApi>,
 
     #[serde(serialize_with = "serialize_date")]
     #[serde(deserialize_with = "deserialize_date")]
@@ -48,6 +68,7 @@ impl Wallet {
             keys,
             addresses,
             chain,
+            submit_api: None,
             created_on: Local::now(),
         }
     }
