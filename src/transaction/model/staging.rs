@@ -1,6 +1,5 @@
 use core::fmt;
 use miette::{Context, IntoDiagnostic};
-use pallas::ledger::addresses::Address as PallasAddress;
 use pallas::{
     ledger::{
         addresses::Address as PallasAddress,
@@ -30,8 +29,6 @@ use pallas::txbuilder::transaction as txb;
 
 use std::{collections::HashMap, ops::Deref};
 
-use serde::{Deserialize, Serialize};
-
 use super::{built::BuiltTransaction, Bytes, Hash28, Hash32, TransactionStatus, TxHash};
 
 #[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -57,6 +54,7 @@ pub struct StagingTransaction {
     pub change_address: Option<Address>,
     pub signatures: Option<HashMap<PublicKey, Signature>>,
 }
+
 impl StagingTransaction {
     pub fn new() -> Self {
         Self {
@@ -82,6 +80,7 @@ pub struct Input {
     pub tx_hash: TxHash,
     pub tx_index: usize,
 }
+
 impl Input {
     pub fn new(tx_hash: TxHash, tx_index: usize) -> Self {
         Self { tx_hash, tx_index }
@@ -97,7 +96,7 @@ pub struct Output {
     pub script: Option<Script>,
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct OutputAssets(pub HashMap<PolicyId, HashMap<AssetName, u64>>);
 
 impl TryFrom<Vec<String>> for OutputAssets {
@@ -144,36 +143,6 @@ impl TryFrom<Vec<String>> for OutputAssets {
         }
 
         Ok(OutputAssets(assets))
-    }
-}
-
-impl Serialize for OutputAssets {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut map = serializer.serialize_map(Some(self.0.len()))?;
-
-        for (policy, assets) in self.0.iter() {
-            let mut assets_map: HashMap<String, u64> = HashMap::new();
-
-            for (asset, amount) in assets {
-                assets_map.insert(hex::encode(&asset.0), *amount);
-            }
-
-            map.serialize_entry(policy, &assets_map)?;
-        }
-
-        map.end()
-    }
-}
-
-impl<'de> Deserialize<'de> for OutputAssets {
-    fn deserialize<D>(deserializer: D) -> Result<OutputAssets, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_map(OutputAssetsVisitor)
     }
 }
 
@@ -251,31 +220,6 @@ pub enum RedeemerPurpose {
     // Cert TODO
 }
 
-impl Serialize for RedeemerPurpose {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let str = match self {
-            RedeemerPurpose::Spend(hash, index) => {
-                format!("spend:{}#{}", hex::encode(hash.0), index)
-            }
-            RedeemerPurpose::Mint(hash) => format!("mint:{}", hex::encode(hash.0)),
-        };
-
-        serializer.serialize_str(&str)
-    }
-}
-
-impl<'de> Deserialize<'de> for RedeemerPurpose {
-    fn deserialize<D>(deserializer: D) -> Result<RedeemerPurpose, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        deserializer.deserialize_str(RedeemerPurposeVisitor)
-    }
-}
-
 struct RedeemerPurposeVisitor;
 
 impl<'de> Visitor<'de> for RedeemerPurposeVisitor {
@@ -335,7 +279,7 @@ struct ExUnits {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Redeemers(HashMap<RedeemerPurpose, (PlutusData, Option<ExUnits>)>);
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Address(pub PallasAddress);
 
 impl Deref for Address {
@@ -479,7 +423,7 @@ impl StagingTransaction {
         }
 
         for datum in self.datums.unwrap_or_default() {
-            let pd = PlutusData::decode_fragment(&datum.0).map_err(|_| Error::MalformedDatum)?;
+            let pd = PlutusData::decode_fragment(&datum.1 .0).map_err(|_| Error::MalformedDatum)?;
 
             builder = builder.plutus_data(pd)
         }
