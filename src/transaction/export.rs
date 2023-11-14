@@ -43,7 +43,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
     let json = serde_json::to_vec_pretty(&staging_transaction).into_diagnostic()?;
 
-    let output_path = args.output_path.unwrap_or(PathBuf::new());
+    let output_path = args.output_path.unwrap_or_default();
 
     let mut file = fs::File::create(output_path.join(format!("tx{}.json", transaction.id)))
         .into_diagnostic()?;

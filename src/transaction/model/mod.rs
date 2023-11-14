@@ -15,8 +15,30 @@ pub enum TransactionStatus {
 #[derive(PartialEq, Eq, Hash, Debug)]
 pub struct Bytes32(pub [u8; 32]);
 
+impl TryFrom<Vec<u8>> for Bytes32 {
+    type Error = miette::Error;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        let slice = <[u8; 32]>::try_from(value)
+            .map_err(|_| miette::miette!("incorrect size for hash 28"))?;
+
+        Ok(Bytes32(slice))
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Hash28(pub [u8; 28]);
+
+impl TryFrom<Vec<u8>> for Hash28 {
+    type Error = miette::Error;
+
+    fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
+        let slice = <[u8; 28]>::try_from(value)
+            .map_err(|_| miette::miette!("incorrect size for hash 28"))?;
+
+        Ok(Hash28(slice))
+    }
+}
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Bytes(pub Vec<u8>);
@@ -27,7 +49,20 @@ impl Into<pallas::codec::utils::Bytes> for Bytes {
     }
 }
 
+impl From<Vec<u8>> for Bytes {
+    fn from(value: Vec<u8>) -> Self {
+        Bytes(value)
+    }
+}
+
+impl AsRef<[u8]> for Bytes {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
 pub type TxHash = Bytes32;
+
 impl TryFrom<String> for TxHash {
     type Error = miette::ErrReport;
 

@@ -1,3 +1,4 @@
+use miette::{Context, IntoDiagnostic};
 use pallas::{
     ledger::{
         addresses::Address as PallasAddress,
@@ -42,12 +43,14 @@ pub struct StagingTransaction {
     pub collateral_output: Option<CollateralOutput>,
     pub disclosed_signers: Option<Vec<PubKeyHash>>,
     pub scripts: Option<Vec<Script>>,
-    pub datums: Option<Vec<DatumBytes>>,
+    pub datums: Option<HashMap<DatumHash, DatumBytes>>,
     pub redeemers: Option<Redeemers>,
     pub script_data_hash: Option<Bytes32>,
     pub signature_amount_override: Option<u8>,
     pub change_address: Option<Address>,
+    pub signatures: Option<HashMap<PublicKey, Signature>>,
 }
+
 impl StagingTransaction {
     pub fn new() -> Self {
         Self {
@@ -62,21 +65,25 @@ pub type PubKeyHash = Hash28;
 pub type ScriptHash = Hash28;
 pub type ScriptBytes = Bytes;
 pub type PolicyId = ScriptHash;
+pub type DatumHash = Bytes32;
 pub type DatumBytes = Bytes;
 pub type AssetName = Bytes;
+pub type PublicKey = Bytes;
+pub type Signature = Bytes;
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Input {
-    tx_hash: TxHash,
-    tx_index: usize,
+    pub tx_hash: TxHash,
+    pub tx_index: usize,
 }
+
 impl Input {
     pub fn new(tx_hash: TxHash, tx_index: usize) -> Self {
         Self { tx_hash, tx_index }
     }
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Output {
     pub address: Address,
     pub lovelace: u64,
@@ -85,10 +92,57 @@ pub struct Output {
     pub script: Option<Script>,
 }
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct OutputAssets(pub HashMap<PolicyId, HashMap<AssetName, u64>>);
 
-#[derive(PartialEq, Eq, Debug)]
+impl TryFrom<Vec<String>> for OutputAssets {
+    type Error = miette::ErrReport;
+
+    fn try_from(value: Vec<String>) -> Result<Self, Self::Error> {
+        let mut assets: HashMap<PolicyId, HashMap<AssetName, u64>> = HashMap::new();
+        for asset_string in value {
+            let parts = asset_string.split(':').collect::<Vec<&str>>();
+            if parts.len() != 3 {
+                return Err(miette::ErrReport::msg("invalid asset string format"));
+            }
+
+            let policy: Hash28 = hex::decode(parts[0])
+                .into_diagnostic()
+                .context("parsing policy hex")?
+                .try_into()?;
+
+            let asset: Bytes = hex::decode(parts[1])
+                .into_diagnostic()
+                .context("parsing name hex")?
+                .into();
+
+            let amount = parts[2]
+                .parse::<u64>()
+                .into_diagnostic()
+                .context("parsing amount u64")?;
+
+            assets
+                .entry(policy)
+                .and_modify(|policy_map| {
+                    policy_map
+                        .entry(asset.clone())
+                        .and_modify(|asset_map| {
+                            *asset_map += amount;
+                        })
+                        .or_insert(amount);
+                })
+                .or_insert_with(|| {
+                    let mut map: HashMap<AssetName, u64> = HashMap::new();
+                    map.insert(asset.clone(), amount);
+                    map
+                });
+        }
+
+        Ok(OutputAssets(assets))
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct MintAssets(pub HashMap<PolicyId, HashMap<AssetName, i64>>);
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -105,20 +159,25 @@ pub enum ScriptKind {
     PlutusV2,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Script {
     pub kind: ScriptKind,
     pub bytes: ScriptBytes,
 }
+impl Script {
+    pub fn new(kind: ScriptKind, bytes: ScriptBytes) -> Self {
+        Self { kind, bytes }
+    }
+}
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum DatumKind {
     Hash,
     Inline,
 }
 
-#[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[derive(Serialize, Deserialize, PartialEq, Eq, Debug, Clone)]
 pub struct Datum {
     pub kind: DatumKind,
     pub bytes: DatumBytes,
@@ -141,7 +200,7 @@ struct ExUnits {
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct Redeemers(HashMap<RedeemerPurpose, (PlutusData, Option<ExUnits>)>);
 
-#[derive(PartialEq, Eq, Debug)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Address(pub PallasAddress);
 
 impl Deref for Address {
@@ -285,7 +344,8 @@ impl StagingTransaction {
         }
 
         for datum in self.datums.unwrap_or_default() {
-            let pd = PlutusData::decode_fragment(&datum.0).map_err(|_| Error::MalformedDatum)?;
+            let pd =
+                PlutusData::decode_fragment(datum.1.as_ref()).map_err(|_| Error::MalformedDatum)?;
 
             builder = builder.plutus_data(pd)
         }
@@ -311,8 +371,8 @@ impl StagingTransaction {
                         let rp = TxbRedeemerPurpose::Mint(pid.0.into());
 
                         builder = builder.redeemer(rp, pd, ex_units)
-                    } // RedeemerPurpose:: TODO
-                      // RedeemerPurpose:: TODO
+                    } /* RedeemerPurpose:: TODO
+                       * RedeemerPurpose:: TODO */
                 };
             }
         };
@@ -341,12 +401,13 @@ mod tests {
 
     use pallas::ledger::addresses::Address as PallasAddress;
 
-    use crate::transaction::model::Bytes32;
-
     use super::*;
 
     #[test]
     fn json_roundtrip() {
+        let mut datums: HashMap<DatumHash, DatumBytes> = HashMap::new();
+        datums.insert(Bytes32([0; 32]), Bytes([0; 100].to_vec()));
+
         let tx = StagingTransaction {
             version: String::from("v1"),
             status: TransactionStatus::Staging,
@@ -407,7 +468,7 @@ mod tests {
             scripts: Some(vec![
                 Script { kind: ScriptKind::PlutusV1, bytes: Bytes([0; 100].to_vec()) }
             ]),
-            datums: Some(vec![Bytes([0; 100].to_vec())]),
+            datums: Some(datums),
             redeemers: Some(Redeemers(vec![
                 (RedeemerPurpose::Spend(Bytes32([4; 32]), 0), (PlutusData::Array(vec![]), Some(ExUnits { mem: 1337, steps: 7331 }))),
                 (RedeemerPurpose::Mint(Hash28([5; 28])), (PlutusData::Array(vec![]), None)),
@@ -415,6 +476,12 @@ mod tests {
             signature_amount_override: Some(5),
             change_address: Some(Address(PallasAddress::from_str("addr1g9ekml92qyvzrjmawxkh64r2w5xr6mg9ngfmxh2khsmdrcudevsft64mf887333adamant").unwrap())),
             script_data_hash: Some(Bytes32([0; 32])),
+            signatures: Some(vec![
+                (
+                    Bytes(vec![0]),
+                    Bytes(vec![0]),
+                )
+            ].into_iter().collect::<HashMap<_, _>>())
         };
 
         let serialised_tx = serde_json::to_string(&tx).unwrap();

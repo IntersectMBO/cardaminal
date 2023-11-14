@@ -14,7 +14,6 @@ mod add_signature;
 mod clear_change_address;
 mod clear_collateral_output;
 mod clear_fee;
-mod clear_network;
 mod clear_signer_amount;
 mod clear_ttl;
 mod clear_valid_hereafter;
@@ -32,7 +31,6 @@ mod remove_signature;
 mod set_change_address;
 mod set_collateral_output;
 mod set_fee;
-mod set_network;
 mod set_signer_amount;
 mod set_ttl;
 mod set_valid_hereafter;
@@ -86,10 +84,6 @@ enum Commands {
     SetValidHereafter(set_valid_hereafter::Args),
     /// clear the transaction valid hereafter
     ClearValidHereafter(clear_valid_hereafter::Args),
-    /// set the network for the transaction
-    SetNetwork(set_network::Args),
-    /// clear the transaction network
-    ClearNetwork(clear_network::Args),
     /// adds a collateral input
     AddCollateralInput(add_collateral_input::Args),
     /// removes a collateral input
@@ -144,40 +138,42 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
     match args.command {
         Commands::AddInput(args) => add_input::run(args, &edit_ctx).await,
-        Commands::RemoveInput(args) => remove_input::run(args, ctx).await,
-        Commands::AddReferenceInput(args) => add_reference_input::run(args).await,
-        Commands::RemoveReferenceInput(args) => remove_reference_input::run(args).await,
+        Commands::RemoveInput(args) => remove_input::run(args, &edit_ctx).await,
+        Commands::AddReferenceInput(args) => add_reference_input::run(args, &edit_ctx).await,
+        Commands::RemoveReferenceInput(args) => remove_reference_input::run(args, &edit_ctx).await,
         Commands::AddOutput(args) => add_output::run(args, &edit_ctx).await,
-        Commands::RemoveOutput(args) => remove_output::run(args, ctx).await,
+        Commands::RemoveOutput(args) => remove_output::run(args, &edit_ctx).await,
         Commands::SetFee(args) => set_fee::run(args, &edit_ctx).await,
-        Commands::ClearFee(args) => clear_fee::run(args).await,
+        Commands::ClearFee(args) => clear_fee::run(args, &edit_ctx).await,
         Commands::AddMint(args) => add_mint::run(args, &edit_ctx).await,
-        Commands::RemoveMint(args) => remove_mint::run(args).await,
-        Commands::SetTtl(args) => set_ttl::run(args).await,
-        Commands::ClearTtl(args) => clear_ttl::run(args).await,
-        Commands::SetValidHereafter(args) => set_valid_hereafter::run(args).await,
-        Commands::ClearValidHereafter(args) => clear_valid_hereafter::run(args).await,
-        Commands::SetNetwork(args) => set_network::run(args).await,
-        Commands::ClearNetwork(args) => clear_network::run(args).await,
+        Commands::RemoveMint(args) => remove_mint::run(args, &edit_ctx).await,
+        Commands::SetTtl(args) => set_ttl::run(args, &edit_ctx).await,
+        Commands::ClearTtl(args) => clear_ttl::run(args, &edit_ctx).await,
+        Commands::SetValidHereafter(args) => set_valid_hereafter::run(args, &edit_ctx).await,
+        Commands::ClearValidHereafter(args) => clear_valid_hereafter::run(args, &edit_ctx).await,
         Commands::AddCollateralInput(args) => add_collateral_input::run(args, &edit_ctx).await,
-        Commands::RemoveCollateralInput(args) => remove_collateral_input::run(args).await,
+        Commands::RemoveCollateralInput(args) => {
+            remove_collateral_input::run(args, &edit_ctx).await
+        }
         Commands::SetCollateralOutput(args) => set_collateral_output::run(args, &edit_ctx).await,
         Commands::ClearCollateralOutput(args) => {
             clear_collateral_output::run(args, &edit_ctx).await
         }
-        Commands::AddDisclosedSigner(args) => add_disclosed_signer::run(args).await,
-        Commands::RemoveDisclosedSigner(args) => remove_disclosed_signer::run(args).await,
-        Commands::AddScript(args) => add_script::run(args).await,
+        Commands::AddDisclosedSigner(args) => add_disclosed_signer::run(args, &edit_ctx).await,
+        Commands::RemoveDisclosedSigner(args) => {
+            remove_disclosed_signer::run(args, &edit_ctx).await
+        }
+        Commands::AddScript(args) => add_script::run(args, &edit_ctx).await,
         Commands::RemoveScript(args) => remove_script::run(args).await,
-        Commands::AddDatum(args) => add_datum::run(args).await,
-        Commands::RemoveDatum(args) => remove_datum::run(args).await,
+        Commands::AddDatum(args) => add_datum::run(args, &edit_ctx).await,
+        Commands::RemoveDatum(args) => remove_datum::run(args, &edit_ctx).await,
         Commands::AddRedeemer(args) => add_redeemer::run(args).await,
         Commands::RemoveRedeemer(args) => remove_redeemer::run(args).await,
-        Commands::SetSignerAmount(args) => set_signer_amount::run(args).await,
-        Commands::ClearSignerAmount(args) => clear_signer_amount::run(args).await,
+        Commands::SetSignerAmount(args) => set_signer_amount::run(args, &edit_ctx).await,
+        Commands::ClearSignerAmount(args) => clear_signer_amount::run(args, &edit_ctx).await,
         Commands::SetChangeAddress(args) => set_change_address::run(args, &edit_ctx).await,
-        Commands::ClearChangeAddress(args) => clear_change_address::run(args).await,
-        Commands::AddSignature(args) => add_signature::run(args).await,
-        Commands::RemoveSignature(args) => remove_signature::run(args).await,
+        Commands::ClearChangeAddress(args) => clear_change_address::run(args, &edit_ctx).await,
+        Commands::AddSignature(args) => add_signature::run(args, &edit_ctx).await,
+        Commands::RemoveSignature(args) => remove_signature::run(args, &edit_ctx).await,
     }
 }

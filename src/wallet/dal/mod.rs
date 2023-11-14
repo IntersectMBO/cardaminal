@@ -327,11 +327,11 @@ impl WalletDB {
     }
 
     pub async fn fetch_by_id(&self, id: &i32) -> Result<Option<transaction::Model>, DbErr> {
-        Transaction::find_by_id(id.clone()).one(&self.conn).await
+        Transaction::find_by_id(*id).one(&self.conn).await
     }
 
     pub async fn remove_transaction(&self, id: &i32) -> Result<(), DbErr> {
-        Transaction::delete_by_id(id.clone())
+        Transaction::delete_by_id(*id)
             .exec(&self.conn)
             .await?;
         Ok(())
