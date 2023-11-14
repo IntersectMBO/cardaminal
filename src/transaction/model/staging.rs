@@ -1,4 +1,3 @@
-use core::fmt;
 use miette::{Context, IntoDiagnostic};
 use pallas::{
     ledger::{
@@ -19,17 +18,14 @@ use pallas::{
         NetworkParams,
     },
 };
-use serde::{
-    de::{self, Visitor},
-    ser::SerializeMap,
-    Deserialize, Deserializer, Serialize, Serializer,
-};
 
 use pallas::txbuilder::transaction as txb;
 
 use std::{collections::HashMap, ops::Deref};
 
-use super::{built::BuiltTransaction, Bytes, Hash28, Hash32, TransactionStatus, TxHash};
+use serde::{Deserialize, Serialize};
+
+use super::{built::BuiltTransaction, Bytes, Bytes32, Hash28, TransactionStatus, TxHash};
 
 #[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct StagingTransaction {
@@ -49,7 +45,7 @@ pub struct StagingTransaction {
     pub scripts: Option<Vec<Script>>,
     pub datums: Option<HashMap<DatumHash, DatumBytes>>,
     pub redeemers: Option<Redeemers>,
-    pub script_data_hash: Option<Hash32>,
+    pub script_data_hash: Option<Bytes32>,
     pub signature_amount_override: Option<u8>,
     pub change_address: Option<Address>,
     pub signatures: Option<HashMap<PublicKey, Signature>>,
@@ -69,7 +65,7 @@ pub type PubKeyHash = Hash28;
 pub type ScriptHash = Hash28;
 pub type ScriptBytes = Bytes;
 pub type PolicyId = ScriptHash;
-pub type DatumHash = Hash32;
+pub type DatumHash = Bytes32;
 pub type DatumBytes = Bytes;
 pub type AssetName = Bytes;
 pub type PublicKey = Bytes;
@@ -146,31 +142,6 @@ impl TryFrom<Vec<String>> for OutputAssets {
     }
 }
 
-struct OutputAssetsVisitor;
-
-impl<'de> Visitor<'de> for OutputAssetsVisitor {
-    type Value = OutputAssets;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str(
-            "map of hex encoded policy ids to map of hex encoded asset names to u64 amounts",
-        )
-    }
-
-    fn visit_map<A>(self, mut access: A) -> Result<Self::Value, A::Error>
-    where
-        A: de::MapAccess<'de>,
-    {
-        let mut out_map = HashMap::new();
-
-        while let Some((key, value)) = access.next_entry()? {
-            out_map.insert(key, value);
-        }
-
-        Ok(OutputAssets(out_map))
-    }
-}
-
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct MintAssets(pub HashMap<PolicyId, HashMap<AssetName, i64>>);
 
@@ -218,56 +189,6 @@ pub enum RedeemerPurpose {
     Mint(PolicyId),
     // Reward TODO
     // Cert TODO
-}
-
-struct RedeemerPurposeVisitor;
-
-impl<'de> Visitor<'de> for RedeemerPurposeVisitor {
-    type Value = RedeemerPurpose;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("'spend:{hex_txid}#{index}' or 'mint:{hex_policyid}'")
-    }
-
-    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
-    where
-        E: de::Error,
-    {
-        let (tag, item) = v
-            .split_once(':')
-            .ok_or(E::custom("invalid redeemer purpose"))?;
-
-        match tag {
-            "spend" => {
-                let (hash, index) = item
-                    .split_once('#')
-                    .ok_or(E::custom("invalid spend redeemer item"))?;
-
-                let hash = Hash32(
-                    hex::decode(hash)
-                        .map_err(|_| E::custom("invalid spend redeemer item txid hex"))?
-                        .try_into()
-                        .map_err(|_| E::custom("invalid spend redeemer txid len"))?,
-                );
-                let index = index
-                    .parse()
-                    .map_err(|_| E::custom("invalid spend redeemer item index"))?;
-
-                Ok(RedeemerPurpose::Spend(hash, index))
-            }
-            "mint" => {
-                let hash = Hash28(
-                    hex::decode(item)
-                        .map_err(|_| E::custom("invalid mint redeemer item policy hex"))?
-                        .try_into()
-                        .map_err(|_| E::custom("invalid mint redeemer policy len"))?,
-                );
-
-                Ok(RedeemerPurpose::Mint(hash))
-            }
-            _ => Err(E::custom("invalid redeemer tag")),
-        }
-    }
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
@@ -423,7 +344,8 @@ impl StagingTransaction {
         }
 
         for datum in self.datums.unwrap_or_default() {
-            let pd = PlutusData::decode_fragment(&datum.1 .0).map_err(|_| Error::MalformedDatum)?;
+            let pd =
+                PlutusData::decode_fragment(datum.1.as_ref()).map_err(|_| Error::MalformedDatum)?;
 
             builder = builder.plutus_data(pd)
         }
@@ -466,7 +388,7 @@ impl StagingTransaction {
 
         Ok(BuiltTransaction {
             version: self.version,
-            tx_hash: Hash32(*pallas_tx.body.compute_hash()),
+            tx_hash: Bytes32(*pallas_tx.body.compute_hash()),
             tx_bytes: Bytes(pallas_tx.encode_fragment().unwrap()),
             signatures: None,
         })
@@ -479,14 +401,12 @@ mod tests {
 
     use pallas::ledger::addresses::Address as PallasAddress;
 
-    use crate::transaction::model::Hash32;
-
     use super::*;
 
     #[test]
     fn json_roundtrip() {
         let mut datums: HashMap<DatumHash, DatumBytes> = HashMap::new();
-        datums.insert(Hash32([0; 32]), Bytes([0; 100].to_vec()));
+        datums.insert(Bytes32([0; 32]), Bytes([0; 100].to_vec()));
 
         let tx = StagingTransaction {
             version: String::from("v1"),
@@ -494,14 +414,14 @@ mod tests {
             inputs: Some(
                 vec![
                     Input {
-                        tx_hash: Hash32([0; 32]),
+                        tx_hash: Bytes32([0; 32]),
                         tx_index: 1
                     }
                 ]
             ) ,
             reference_inputs: Some(vec![
                 Input {
-                    tx_hash: Hash32([1; 32]),
+                    tx_hash: Bytes32([1; 32]),
                     tx_index: 0
                 }
             ]),
@@ -539,7 +459,7 @@ mod tests {
             network_id: Some(1),
             collateral_inputs: Some(vec![
                 Input {
-                    tx_hash: Hash32([2; 32]),
+                    tx_hash: Bytes32([2; 32]),
                     tx_index: 0
                 }
             ]),
@@ -550,12 +470,12 @@ mod tests {
             ]),
             datums: Some(datums),
             redeemers: Some(Redeemers(vec![
-                (RedeemerPurpose::Spend(Hash32([4; 32]), 0), (PlutusData::Array(vec![]), Some(ExUnits { mem: 1337, steps: 7331 }))),
+                (RedeemerPurpose::Spend(Bytes32([4; 32]), 0), (PlutusData::Array(vec![]), Some(ExUnits { mem: 1337, steps: 7331 }))),
                 (RedeemerPurpose::Mint(Hash28([5; 28])), (PlutusData::Array(vec![]), None)),
             ].into_iter().collect::<HashMap<_, _>>())),
             signature_amount_override: Some(5),
             change_address: Some(Address(PallasAddress::from_str("addr1g9ekml92qyvzrjmawxkh64r2w5xr6mg9ngfmxh2khsmdrcudevsft64mf887333adamant").unwrap())),
-            script_data_hash: Some(Hash32([0; 32])),
+            script_data_hash: Some(Bytes32([0; 32])),
             signatures: Some(vec![
                 (
                     Bytes(vec![0]),

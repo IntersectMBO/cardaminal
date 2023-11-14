@@ -13,16 +13,16 @@ pub enum TransactionStatus {
 }
 
 #[derive(PartialEq, Eq, Hash, Debug)]
-pub struct Hash32([u8; 32]);
+pub struct Bytes32(pub [u8; 32]);
 
-impl TryFrom<Vec<u8>> for Hash32 {
+impl TryFrom<Vec<u8>> for Bytes32 {
     type Error = miette::Error;
 
     fn try_from(value: Vec<u8>) -> Result<Self, Self::Error> {
         let slice = <[u8; 32]>::try_from(value)
             .map_err(|_| miette::miette!("incorrect size for hash 28"))?;
 
-        Ok(Hash32(slice))
+        Ok(Bytes32(slice))
     }
 }
 
@@ -55,13 +55,19 @@ impl From<Vec<u8>> for Bytes {
     }
 }
 
-pub type TxHash = Hash32;
+impl AsRef<[u8]> for Bytes {
+    fn as_ref(&self) -> &[u8] {
+        &self.0
+    }
+}
+
+pub type TxHash = Bytes32;
 
 impl TryFrom<String> for TxHash {
     type Error = miette::ErrReport;
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
-        Ok(Hash32(
+        Ok(Bytes32(
             hex::decode(value)
                 .map_err(|_| miette::miette!("invalid hex"))?
                 .try_into()

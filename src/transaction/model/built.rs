@@ -3,7 +3,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
-use super::{Bytes, TxHash};
+use super::{Bytes, Bytes32, TxHash};
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct BuiltTransaction {
@@ -22,12 +22,12 @@ impl BuiltTransaction {
 #[derive(Hash, PartialEq, Eq, Debug)]
 pub struct Bytes64(pub [u8; 64]);
 
-type PublicKey = Bytes64;
+type PublicKey = Bytes32;
 type Signature = Bytes64;
 
 #[cfg(test)]
 mod tests {
-    use crate::transaction::model::Hash32;
+    use crate::transaction::model::Bytes32;
 
     use super::*;
 
@@ -35,10 +35,10 @@ mod tests {
     fn json_roundtrip() {
         let tx = BuiltTransaction {
             version: "3".into(),
-            tx_hash: Hash32([0; 32]),
+            tx_hash: Bytes32([0; 32]),
             tx_bytes: Bytes([6; 100].to_vec()),
             signatures: Some(
-                vec![(Bytes64([20; 64]), Bytes64([9; 64]))]
+                vec![(Bytes32([20; 32]), Bytes64([9; 64]))]
                     .into_iter()
                     .collect::<HashMap<_, _>>(),
             ),
