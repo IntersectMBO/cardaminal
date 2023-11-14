@@ -54,7 +54,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::Inspect(args) => inspect::run(args, ctx).await,
         Commands::Build(args) => build::run(args, ctx).await,
         Commands::Sign(args) => sign::run(args, ctx).await,
-        Commands::Submit(args) => submit::run(args).await,
+        Commands::Submit(args) => submit::run(args, ctx).await,
         Commands::Export(args) => export::run(args, ctx).await,
     }
 }
