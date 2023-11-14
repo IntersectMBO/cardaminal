@@ -1,5 +1,5 @@
 use clap::Parser;
-use miette::IntoDiagnostic;
+use miette::{Context, IntoDiagnostic};
 use sea_orm::Order;
 use tracing::instrument;
 
@@ -28,7 +28,8 @@ pub struct Args {
 
 #[instrument("list", skip_all, fields(wallet=args.wallet))]
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
-    let wallet = Wallet::load_config(&ctx.dirs.root_dir, &args.wallet)?
+    let wallet = Wallet::load_config(&ctx.dirs.root_dir, &args.wallet)
+        .with_context(|| format!("loading wallet {}", args.wallet))?
         .ok_or(miette::miette!("wallet doesn't exist"))?;
 
     let wallet_db = WalletDB::open(&wallet.name, &Wallet::dir(&ctx.dirs.root_dir, &wallet.name))

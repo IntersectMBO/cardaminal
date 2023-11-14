@@ -1,5 +1,5 @@
 use clap::Parser;
-use miette::bail;
+use miette::{bail, Context};
 use tracing::instrument;
 
 use super::config;
@@ -10,7 +10,7 @@ pub struct Args {
     name: String,
 }
 
-#[instrument("delete", skip_all, fields(name=args.name))]
+#[instrument("info", skip_all, fields(name=args.name))]
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let cfg = config::Chain::load_config(&ctx.dirs.root_dir, &args.name)?;
 
