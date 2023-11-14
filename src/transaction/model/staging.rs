@@ -25,12 +25,11 @@ use std::{collections::HashMap, ops::Deref};
 
 use serde::{Deserialize, Serialize};
 
-use super::{built::BuiltTransaction, Bytes, Bytes32, Hash28, TransactionStatus, TxHash};
+use super::{built::BuiltTransaction, Bytes, Bytes32, Hash28, TxHash};
 
 #[derive(Default, Serialize, Deserialize, PartialEq, Eq, Debug)]
 pub struct StagingTransaction {
     version: String,
-    pub status: TransactionStatus,
     pub inputs: Option<Vec<Input>>,
     pub reference_inputs: Option<Vec<Input>>,
     pub outputs: Option<Vec<Output>>,
@@ -55,7 +54,6 @@ impl StagingTransaction {
     pub fn new() -> Self {
         Self {
             version: String::from("v1"),
-            status: TransactionStatus::Staging,
             ..Default::default()
         }
     }
@@ -410,7 +408,6 @@ mod tests {
 
         let tx = StagingTransaction {
             version: String::from("v1"),
-            status: TransactionStatus::Staging,
             inputs: Some(
                 vec![
                     Input {
