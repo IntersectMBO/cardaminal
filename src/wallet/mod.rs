@@ -9,10 +9,11 @@ pub mod dal;
 mod detach;
 mod history;
 mod info;
-mod keys;
 mod list;
 mod update;
 mod utxos;
+
+pub mod keys;
 
 #[derive(Parser)]
 pub struct Args {

@@ -57,7 +57,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let wallet = Wallet::load_config(&ctx.dirs.root_dir, &args.wallet)?
         .ok_or(miette!("wallet not found"))?;
 
-    let wallet_pkh: [u8; 28] = hex::decode(wallet.keys.public)
+    let wallet_pkh: [u8; 28] = hex::decode(wallet.keys.public_key_hash)
         .into_diagnostic()
         .context("parsing public key hex")?
         .try_into()

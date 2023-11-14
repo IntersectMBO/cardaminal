@@ -37,9 +37,6 @@ pub struct Args {
     reference_script_file: Option<String>,
 }
 
-// TODO: find value from params
-const MIN_UTXO: u64 = 1_000_000;
-
 #[instrument("add", skip_all, fields())]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
     let address: Address = PallasAddress::from_bech32(&args.address)
@@ -47,7 +44,7 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
         .context("parsing address")?
         .into();
 
-    let lovelace = args.lovelace_amount.unwrap_or(MIN_UTXO);
+    let lovelace = args.lovelace_amount.unwrap_or_default();
 
     let assets: Option<OutputAssets> = match args.assets {
         Some(value) => Some(value.try_into()?),

@@ -87,7 +87,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let encrypted_priv_key = wallet::keys::encrypt_privkey(password, priv_key);
 
     let key_data = wallet::config::Keys {
-        public: hex::encode(pkh),
+        public_key_hash: hex::encode(pkh),
         private_encrypted: hex::encode(encrypted_priv_key),
     };
 
