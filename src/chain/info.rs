@@ -1,5 +1,5 @@
 use clap::Parser;
-use miette::{bail, Context};
+use miette::bail;
 use tracing::instrument;
 
 use super::config;
