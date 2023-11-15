@@ -42,7 +42,7 @@ pub struct StagingTransaction {
     pub collateral_inputs: Option<Vec<Input>>,
     pub collateral_output: Option<CollateralOutput>,
     pub disclosed_signers: Option<Vec<PubKeyHash>>,
-    pub scripts: Option<Vec<Script>>,
+    pub scripts: Option<HashMap<ScriptHash, Script>>,
     pub datums: Option<HashMap<DatumHash, DatumBytes>>,
     pub redeemers: Option<Redeemers>,
     pub script_data_hash: Option<Bytes32>,
@@ -322,7 +322,7 @@ impl StagingTransaction {
             builder = builder.require_signer(signer.0.into())
         }
 
-        for script in self.scripts.unwrap_or_default() {
+        for (_, script) in self.scripts.unwrap_or_default() {
             match script.kind {
                 ScriptKind::Native => {
                     let script = NativeScript::decode_fragment(&script.bytes.0)
@@ -465,9 +465,14 @@ mod tests {
             ]),
             collateral_output: Some(CollateralOutput { address: Address(PallasAddress::from_str("addr1g9ekml92qyvzrjmawxkh64r2w5xr6mg9ngfmxh2khsmdrcudevsft64mf887333adamant").unwrap()), lovelace: 1337 }),
             disclosed_signers: Some(vec![Hash28([0; 28])]),
-            scripts: Some(vec![
-                Script { kind: ScriptKind::PlutusV1, bytes: Bytes([0; 100].to_vec()) }
-            ]),
+            scripts: Some(
+                vec![
+                    (
+                        Hash28([0; 28]),
+                        Script { kind: ScriptKind::PlutusV1, bytes: Bytes([0; 100].to_vec()) }
+                    )
+                ].into_iter().collect::<HashMap<_, _>>()
+            ),
             datums: Some(datums),
             redeemers: Some(Redeemers(vec![
                 (RedeemerPurpose::Spend(Bytes32([4; 32]), 0), (PlutusData::Array(vec![]), Some(ExUnits { mem: 1337, steps: 7331 }))),

@@ -1,6 +1,6 @@
 use clap::Parser;
 use miette::IntoDiagnostic;
-use tracing::{info, instrument};
+use tracing::instrument;
 
 use super::model::staging::StagingTransaction;
 use crate::wallet::{config::Wallet, dal::WalletDB};
