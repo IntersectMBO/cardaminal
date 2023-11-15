@@ -164,7 +164,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
             remove_disclosed_signer::run(args, &edit_ctx).await
         }
         Commands::AddScript(args) => add_script::run(args, &edit_ctx).await,
-        Commands::RemoveScript(args) => remove_script::run(args).await,
+        Commands::RemoveScript(args) => remove_script::run(args, &edit_ctx).await,
         Commands::AddDatum(args) => add_datum::run(args, &edit_ctx).await,
         Commands::RemoveDatum(args) => remove_datum::run(args, &edit_ctx).await,
         Commands::AddRedeemer(args) => add_redeemer::run(args).await,
