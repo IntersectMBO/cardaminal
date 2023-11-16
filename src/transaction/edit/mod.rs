@@ -1,4 +1,4 @@
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{Parser, Subcommand};
 use tracing::instrument;
 
 mod add_collateral_input;
@@ -7,7 +7,8 @@ mod add_disclosed_signer;
 mod add_input;
 mod add_mint;
 mod add_output;
-mod add_redeemer;
+mod add_redeemer_mint;
+mod add_redeemer_spend;
 mod add_reference_input;
 mod add_script;
 mod add_signature;
@@ -24,7 +25,8 @@ mod remove_disclosed_signer;
 mod remove_input;
 mod remove_mint;
 mod remove_output;
-mod remove_redeemer;
+mod remove_redeemer_mint;
+mod remove_redeemer_spend;
 mod remove_reference_input;
 mod remove_script;
 mod remove_signature;
@@ -34,12 +36,6 @@ mod set_fee;
 mod set_signer_amount;
 mod set_ttl;
 mod set_valid_hereafter;
-
-#[derive(Clone, ValueEnum)]
-pub enum RedeemerAction {
-    Spend,
-    Mint,
-}
 
 #[derive(Parser)]
 pub struct Args {
@@ -104,10 +100,14 @@ enum Commands {
     AddDatum(add_datum::Args),
     /// removes a datum from a transaction
     RemoveDatum(remove_datum::Args),
-    /// adds a redeemer to the transaction
-    AddRedeemer(add_redeemer::Args),
-    /// removes a redeemer from the transaction
-    RemoveRedeemer(remove_redeemer::Args),
+    /// adds a redeemer spend to the transaction
+    AddRedeemerSpend(add_redeemer_spend::Args),
+    /// removes a redeemer spend from the transaction
+    RemoveRedeemerSpend(remove_redeemer_spend::Args),
+    /// adds a redeemer mint to the transaction
+    AddRedeemerMint(add_redeemer_mint::Args),
+    /// removes a redeemer mint from the transaction
+    RemoveRedeemerMint(remove_redeemer_mint::Args),
     /// override the amount of signers
     SetSignerAmount(set_signer_amount::Args),
     /// clear the amount of signers
@@ -167,8 +167,10 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::RemoveScript(args) => remove_script::run(args, &edit_ctx).await,
         Commands::AddDatum(args) => add_datum::run(args, &edit_ctx).await,
         Commands::RemoveDatum(args) => remove_datum::run(args, &edit_ctx).await,
-        Commands::AddRedeemer(args) => add_redeemer::run(args).await,
-        Commands::RemoveRedeemer(args) => remove_redeemer::run(args).await,
+        Commands::AddRedeemerSpend(args) => add_redeemer_spend::run(args, &edit_ctx).await,
+        Commands::RemoveRedeemerSpend(args) => remove_redeemer_spend::run(args, &edit_ctx).await,
+        Commands::AddRedeemerMint(args) => add_redeemer_mint::run(args, &edit_ctx).await,
+        Commands::RemoveRedeemerMint(args) => remove_redeemer_mint::run(args, &edit_ctx).await,
         Commands::SetSignerAmount(args) => set_signer_amount::run(args, &edit_ctx).await,
         Commands::ClearSignerAmount(args) => clear_signer_amount::run(args, &edit_ctx).await,
         Commands::SetChangeAddress(args) => set_change_address::run(args, &edit_ctx).await,

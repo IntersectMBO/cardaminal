@@ -192,13 +192,13 @@ pub enum RedeemerPurpose {
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-struct ExUnits {
+pub struct ExUnits {
     mem: u32,
     steps: u64,
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, Debug)]
-pub struct Redeemers(HashMap<RedeemerPurpose, (PlutusData, Option<ExUnits>)>);
+pub struct Redeemers(pub HashMap<RedeemerPurpose, (PlutusData, Option<ExUnits>)>);
 
 #[derive(PartialEq, Eq, Debug, Clone)]
 pub struct Address(pub PallasAddress);

@@ -13,7 +13,7 @@ pub struct Args {
     utxo_idx: usize,
 }
 
-#[instrument("add_input", skip_all, fields())]
+#[instrument("add input", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
     let utxo_hash = args.utxo_hash.try_into().context("parsing utxo hash")?;
     let utxo_idx = args.utxo_idx;
