@@ -1,8 +1,6 @@
 use clap::Parser;
-use miette::{IntoDiagnostic, Context};
+use miette::{miette, Context, IntoDiagnostic};
 use tracing::instrument;
-
-use crate::transaction::model::Hash28;
 
 use super::common::with_staging_tx;
 
@@ -14,19 +12,14 @@ pub struct Args {
 
 #[instrument("remove script", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let script_hash: Hash28 = hex::decode(args.script_hash)
+    let script_hash: [u8; 28] = hex::decode(args.script_hash)
         .into_diagnostic()
         .context("parsing script hash hex")?
-        .try_into()?;
+        .try_into()
+        .map_err(|_| miette!("script hash incorrect length"))?;
 
-    with_staging_tx(ctx, move |mut tx| {
-        if let Some(mut scripts) = tx.scripts {
-            scripts.remove(&script_hash);
-
-            tx.scripts = (!scripts.is_empty()).then_some(scripts);
-        }
-
-        Ok(tx)
+    with_staging_tx(ctx, move |tx| {
+        Ok(tx.remove_script_by_hash(script_hash.into()))
     })
     .await
 }

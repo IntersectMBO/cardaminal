@@ -1,8 +1,7 @@
 use clap::Parser;
-use miette::Context;
+use miette::{miette, Context, IntoDiagnostic};
+use pallas::txbuilder::Input;
 use tracing::instrument;
-
-use crate::transaction::model::staging::RedeemerPurpose;
 
 use super::common::with_staging_tx;
 
@@ -11,24 +10,21 @@ pub struct Args {
     /// utxo hash
     utxo_hash: String,
     /// utxo idx
-    utxo_idx: usize,
+    utxo_idx: u64,
 }
 
 #[instrument("remove redeemer spend", skip_all, fields())]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let utxo_hash = args.utxo_hash.try_into().context("parsing utxo hash")?;
+    let utxo_hash: [u8; 32] = hex::decode(args.utxo_hash)
+        .into_diagnostic()
+        .context("parsing datum hex to bytes")?
+        .try_into()
+        .map_err(|_| miette!("utxo hash incorrect length"))?;
+
     let utxo_idx = args.utxo_idx;
 
-    with_staging_tx(ctx, move |mut tx| {
-        if let Some(mut redeemers) = tx.redeemers {
-            let redeemer_purpose = RedeemerPurpose::Spend(utxo_hash, utxo_idx);
-
-            redeemers.0.remove(&redeemer_purpose);
-
-            tx.redeemers = (!redeemers.0.is_empty()).then_some(redeemers);
-        }
-
-        Ok(tx)
+    with_staging_tx(ctx, move |tx| {
+        Ok(tx.remove_spend_redeemer(Input::new(utxo_hash.into(), utxo_idx)))
     })
     .await
 }

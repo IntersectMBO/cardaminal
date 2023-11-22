@@ -8,10 +8,5 @@ pub struct Args {}
 
 #[instrument("clear signer amount", skip_all)]
 pub async fn run(_args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    with_staging_tx(ctx, move |mut tx| {
-        tx.signature_amount_override = None;
-
-        Ok(tx)
-    })
-    .await
+    with_staging_tx(ctx, move |tx| Ok(tx.clear_signature_amount_override())).await
 }

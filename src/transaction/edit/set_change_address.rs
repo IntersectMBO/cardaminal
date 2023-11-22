@@ -1,9 +1,7 @@
 use clap::Parser;
 use miette::{Context, IntoDiagnostic};
-use pallas::ledger::addresses::Address as PallasAddress;
+use pallas::ledger::addresses::Address;
 use tracing::instrument;
-
-use crate::transaction::model::staging::Address;
 
 use super::common::with_staging_tx;
 
@@ -15,15 +13,9 @@ pub struct Args {
 
 #[instrument("set_change_address", skip_all, fields())]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let address: Address = PallasAddress::from_bech32(&args.address)
+    let address = Address::from_bech32(&args.address)
         .into_diagnostic()
-        .context("parsing address")?
-        .into();
+        .context("parsing address")?;
 
-    with_staging_tx(ctx, move |mut tx| {
-        tx.change_address = Some(address);
-
-        Ok(tx)
-    })
-    .await
+    with_staging_tx(ctx, move |tx| Ok(tx.change_address(address))).await
 }

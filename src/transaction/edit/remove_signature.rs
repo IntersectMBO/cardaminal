@@ -1,10 +1,8 @@
 use clap::Parser;
-use miette::{Context, IntoDiagnostic};
+// use miette::{Context, IntoDiagnostic};
 use tracing::instrument;
 
-use crate::transaction::model::staging::PublicKey;
-
-use super::common::with_staging_tx;
+// use super::common::with_staging_tx;
 
 #[derive(Parser)]
 pub struct Args {
@@ -13,20 +11,23 @@ pub struct Args {
 }
 
 #[instrument("remove signature", skip_all, fields(args))]
-pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let public_key: PublicKey = hex::decode(args.public_key)
-        .into_diagnostic()
-        .context("parsing public key hex")?
-        .into();
+pub async fn run(_args: Args, _ctx: &super::EditContext<'_>) -> miette::Result<()> {
+    // TODO should operate on built tx not staging
+    todo!();
 
-    with_staging_tx(ctx, move |mut tx| {
-        if let Some(mut signatures) = tx.signatures {
-            signatures.remove(&public_key);
+    // let public_key: PublicKey = hex::decode(args.public_key)
+    //     .into_diagnostic()
+    //     .context("parsing public key hex")?
+    //     .into();
 
-            tx.signatures = (!signatures.is_empty()).then_some(signatures);
-        }
+    // with_staging_tx(ctx, move |mut tx| {
+    //     if let Some(mut signatures) = tx.signatures {
+    //         signatures.remove(&public_key);
 
-        Ok(tx)
-    })
-    .await
+    //         tx.signatures = (!signatures.is_empty()).then_some(signatures);
+    //     }
+
+    //     Ok(tx)
+    // })
+    // .await
 }

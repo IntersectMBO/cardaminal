@@ -8,9 +8,5 @@ pub struct Args {}
 
 #[instrument("clear valid hereafter", skip_all)]
 pub async fn run(_args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    with_staging_tx(ctx, move |mut tx| {
-        tx.valid_from_slot = None;
-        Ok(tx)
-    })
-    .await
+    with_staging_tx(ctx, move |tx| Ok(tx.clear_valid_from_slot())).await
 }

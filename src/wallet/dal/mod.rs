@@ -331,9 +331,7 @@ impl WalletDB {
     }
 
     pub async fn remove_transaction(&self, id: &i32) -> Result<(), DbErr> {
-        Transaction::delete_by_id(*id)
-            .exec(&self.conn)
-            .await?;
+        Transaction::delete_by_id(*id).exec(&self.conn).await?;
         Ok(())
     }
 

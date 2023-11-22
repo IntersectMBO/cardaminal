@@ -1,13 +1,11 @@
 use clap::Parser;
 use miette::IntoDiagnostic;
+use pallas::txbuilder::{BuiltTransaction, StagingTransaction};
 use tracing::instrument;
 
-use crate::{
-    transaction::model::{built::BuiltTransaction, staging::StagingTransaction},
-    wallet::{
-        config::Wallet,
-        dal::{entities::transaction::Status, WalletDB},
-    },
+use crate::wallet::{
+    config::Wallet,
+    dal::{entities::transaction::Status, WalletDB},
 };
 
 #[derive(Parser)]

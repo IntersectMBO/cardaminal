@@ -1,8 +1,6 @@
 use clap::Parser;
-use miette::{bail, Context, IntoDiagnostic};
+use miette::{miette, Context, IntoDiagnostic};
 use tracing::instrument;
-
-use crate::transaction::model::Hash28;
 
 use super::common::with_staging_tx;
 
@@ -14,22 +12,11 @@ pub struct Args {
 
 #[instrument("add disclosed signer", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let hash: Hash28 = hex::decode(args.public_key_hash)
+    let hash: [u8; 28] = hex::decode(args.public_key_hash)
         .into_diagnostic()
-        .context("parsing public key hash hex")?
-        .try_into()?;
+        .context("parsing pubkeyhash hex to bytes")?
+        .try_into()
+        .map_err(|_| miette!("pubkeyhash incorrect length"))?;
 
-    with_staging_tx(ctx, move |mut tx| {
-        let mut disclosed_signers = tx.disclosed_signers.unwrap_or_default();
-
-        if disclosed_signers.iter().any(|s| s.eq(&hash)) {
-            bail!("disclosed signer already added")
-        }
-
-        disclosed_signers.push(hash);
-
-        tx.disclosed_signers = Some(disclosed_signers);
-        Ok(tx)
-    })
-    .await
+    with_staging_tx(ctx, move |tx| Ok(tx.disclosed_signer(hash.into()))).await
 }

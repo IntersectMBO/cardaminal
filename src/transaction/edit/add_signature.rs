@@ -1,12 +1,8 @@
-use std::collections::HashMap;
-
 use clap::Parser;
-use miette::{Context, IntoDiagnostic};
+// use miette::{Context, IntoDiagnostic};
 use tracing::instrument;
 
-use crate::transaction::model::staging::{PublicKey, Signature};
-
-use super::common::with_staging_tx;
+// use super::common::with_staging_tx;
 
 #[derive(Parser)]
 pub struct Args {
@@ -17,28 +13,31 @@ pub struct Args {
 }
 
 #[instrument("add signature", skip_all, fields(args))]
-pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let public_key: PublicKey = hex::decode(args.public_key)
-        .into_diagnostic()
-        .context("parsing public key hex")?
-        .into();
+pub async fn run(_args: Args, _ctx: &super::EditContext<'_>) -> miette::Result<()> {
+    // TODO: This should operate on a BuiltTransaction not a StagingTransaction
+    todo!()
 
-    let signature: Signature = hex::decode(args.signature)
-        .into_diagnostic()
-        .context("parsing signature hex")?
-        .into();
+    // let public_key: PublicKey = hex::decode(args.public_key)
+    //     .into_diagnostic()
+    //     .context("parsing public key hex")?
+    //     .into();
+
+    // let signature: Signature = hex::decode(args.signature)
+    //     .into_diagnostic()
+    //     .context("parsing signature hex")?
+    //     .into();
 
     // TODO: verify if is possible to validate public key and signature
-    with_staging_tx(ctx, move |mut tx| {
-        if let Some(signatures) = tx.signatures.as_mut() {
-            signatures.insert(public_key, signature);
-        } else {
-            let mut signatures = HashMap::new();
-            signatures.insert(public_key, signature);
-            tx.signatures = Some(signatures)
-        }
+    // with_staging_tx(ctx, move |mut tx| {
+    // if let Some(signatures) = tx.signatures.as_mut() {
+    //     signatures.insert(public_key, signature);
+    // } else {
+    //     let mut signatures = HashMap::new();
+    //     signatures.insert(public_key, signature);
+    //     tx.signatures = Some(signatures)
+    // }
 
-        Ok(tx)
-    })
-    .await
+    // Ok(tx)
+    // })
+    // .await
 }

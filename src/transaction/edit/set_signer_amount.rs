@@ -11,10 +11,8 @@ pub struct Args {
 
 #[instrument("set signer amount", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    with_staging_tx(ctx, move |mut tx| {
-        tx.signature_amount_override = Some(args.number_of_signers);
-
-        Ok(tx)
+    with_staging_tx(ctx, move |tx| {
+        Ok(tx.signature_amount_override(args.number_of_signers))
     })
     .await
 }

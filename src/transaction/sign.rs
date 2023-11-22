@@ -1,22 +1,12 @@
 use clap::Parser;
 use miette::{bail, IntoDiagnostic};
-use pallas::{
-    crypto::key::ed25519,
-    ledger::primitives::{conway::VKeyWitness, Fragment},
-    txbuilder::transaction::Transaction,
-};
+use pallas::{crypto::key::ed25519, txbuilder::BuiltTransaction};
 use tracing::{info, instrument};
 
-use crate::{
-    transaction::model::{
-        built::{BuiltTransaction, Bytes64},
-        Bytes, Bytes32,
-    },
-    wallet::{
-        config::Wallet,
-        dal::{entities::transaction::Status, WalletDB},
-        keys::decrypt_privkey,
-    },
+use crate::wallet::{
+    config::Wallet,
+    dal::{entities::transaction::Status, WalletDB},
+    keys::decrypt_privkey,
 };
 
 pub fn gather_inputs(args: &mut Args) -> miette::Result<()> {
@@ -87,42 +77,7 @@ pub async fn run(mut args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
     let privkey = ed25519::SecretKey::from(privkey);
 
-    let pubkey: [u8; 32] = privkey
-        .public_key()
-        .as_ref()
-        .try_into()
-        .map_err(|_| miette::miette!("malformed public key"))?;
-
-    let signature: [u8; 64] = built_tx
-        .sign(privkey)
-        .as_ref()
-        .try_into()
-        .map_err(|_| miette::miette!("malformed signature"))?;
-
-    // add signature to json field
-
-    let mut new_sigs = built_tx.signatures.unwrap_or_default();
-
-    new_sigs.insert(Bytes32(pubkey), Bytes64(signature));
-
-    built_tx.signatures = Some(new_sigs);
-
-    // add signature to tx bytes
-
-    let mut tx =
-        Transaction::decode_fragment(&record.tx_cbor.ok_or(miette::miette!("tx cbor missing"))?)
-            .map_err(|e| miette::miette!("malformed tx cbor: {e:?}"))?;
-
-    let mut vkey_witnesses = tx.witness_set.vkeywitness.unwrap_or(vec![]);
-
-    vkey_witnesses.push(VKeyWitness {
-        vkey: Vec::from(pubkey.as_ref()).into(),
-        signature: Vec::from(signature.as_ref()).into(),
-    });
-
-    tx.witness_set.vkeywitness = Some(vkey_witnesses);
-
-    built_tx.tx_bytes = Bytes(tx.encode_fragment().unwrap());
+    built_tx = built_tx.sign(privkey).into_diagnostic()?;
 
     // update db
 
