@@ -40,9 +40,12 @@ struct Cli {
 enum Commands {
     /// Manage chains
     Chain(chain::Args),
+
     /// Manage Wallets
     Wallet(wallet::Args),
+
     /// Manage Transactions
+    #[command(alias = "tx")]
     Transaction(transaction::Args),
 }
 
