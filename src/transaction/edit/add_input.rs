@@ -6,30 +6,22 @@ use crate::transaction::{edit::common::with_staging_tx, model::staging::Input};
 
 #[derive(Parser)]
 pub struct Args {
-    /// utxo hash
-    utxo_hash: String,
-
-    /// utxo idx
-    utxo_idx: usize,
+    /// utxo to use [hash]#[index]
+    utxo: String,
 }
 
 #[instrument("add input", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let utxo_hash = args.utxo_hash.try_into().context("parsing utxo hash")?;
-    let utxo_idx = args.utxo_idx;
+    let utxo: Input = args.utxo.parse().context("parsing utxo hash")?;
 
     with_staging_tx(ctx, move |mut tx| {
         let mut inputs = tx.inputs.unwrap_or_default();
 
-        if inputs
-            .iter()
-            .any(|i| i.tx_hash.eq(&utxo_hash) && i.tx_index.eq(&utxo_idx))
-        {
+        if inputs.iter().any(|i| i.eq(&utxo)) {
             bail!("input already added")
         }
 
-        let input = Input::new(utxo_hash, utxo_idx);
-        inputs.push(input);
+        inputs.push(utxo);
 
         tx.inputs = Some(inputs);
 

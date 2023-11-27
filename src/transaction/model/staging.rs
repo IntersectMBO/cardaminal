@@ -1,4 +1,4 @@
-use miette::{Context, IntoDiagnostic};
+use miette::{bail, Context, IntoDiagnostic};
 use pallas::{
     ledger::{
         addresses::Address as PallasAddress,
@@ -21,7 +21,7 @@ use pallas::{
 
 use pallas::txbuilder::transaction as txb;
 
-use std::{collections::HashMap, ops::Deref};
+use std::{collections::HashMap, ops::Deref, str::FromStr};
 
 use serde::{Deserialize, Serialize};
 
@@ -80,6 +80,23 @@ pub struct Input {
 impl Input {
     pub fn new(tx_hash: TxHash, tx_index: usize) -> Self {
         Self { tx_hash, tx_index }
+    }
+}
+
+impl FromStr for Input {
+    type Err = miette::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut parts = s.split('#').collect::<Vec<_>>();
+
+        if parts.len() != 2 {
+            bail!("invalid utxo string");
+        }
+
+        let tx_hash = TxHash::try_from(parts.remove(0).to_owned())?;
+        let tx_index = parts.remove(0).parse().into_diagnostic()?;
+
+        Ok(Self::new(tx_hash, tx_index))
     }
 }
 
