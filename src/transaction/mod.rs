@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use tracing::instrument;
 
+mod balance;
 mod build;
 mod config;
 mod create;
@@ -42,6 +43,8 @@ enum Commands {
     Submit(submit::Args),
     /// export a transaction to json file
     Export(export::Args),
+    /// show value balance between inputs and outputs
+    Balance(balance::Args),
 }
 
 #[instrument("transaction", skip_all)]
@@ -56,5 +59,6 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::Sign(args) => sign::run(args, ctx).await,
         Commands::Submit(args) => submit::run(args, ctx).await,
         Commands::Export(args) => export::run(args, ctx).await,
+        Commands::Balance(args) => balance::run(args, ctx).await,
     }
 }

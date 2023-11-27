@@ -106,12 +106,6 @@ pub struct ChainUpstream {
     pub address: String,
 }
 
-impl ChainUpstream {
-    pub fn new(address: String) -> Self {
-        Self { address }
-    }
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct ChainAfter {
     pub slot: u64,
