@@ -1,6 +1,7 @@
 use clap::{Parser, Subcommand};
 use tracing::instrument;
 
+mod balance;
 mod build;
 mod config;
 mod create;
@@ -41,6 +42,8 @@ enum Commands {
     Submit(submit::Args),
     /// export a transaction to json file
     Export(export::Args),
+    /// show value balance between inputs and outputs
+    Balance(balance::Args),
 }
 
 #[instrument("transaction", skip_all)]
@@ -48,12 +51,28 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     match args.command {
         Commands::Create(args) => create::run(args, ctx).await,
         Commands::List(args) => list::run(args, ctx).await,
-        Commands::Edit(args) => edit::run(args, ctx).await,
-        Commands::Delete(args) => delete::run(args, ctx).await,
+        Commands::Edit(args) => {
+            crate::with_tracing();
+            edit::run(args, ctx).await
+        }
+        Commands::Delete(args) => {
+            crate::with_tracing();
+            delete::run(args, ctx).await
+        }
         Commands::Inspect(args) => inspect::run(args, ctx).await,
-        Commands::Build(args) => build::run(args, ctx).await,
+        Commands::Build(args) => {
+            crate::with_tracing();
+            build::run(args, ctx).await
+        }
         Commands::Sign(args) => sign::run(args, ctx).await,
-        Commands::Submit(args) => submit::run(args, ctx).await,
-        Commands::Export(args) => export::run(args, ctx).await,
+        Commands::Submit(args) => {
+            crate::with_tracing();
+            submit::run(args, ctx).await
+        }
+        Commands::Export(args) => {
+            crate::with_tracing();
+            export::run(args, ctx).await
+        }
+        Commands::Balance(args) => balance::run(args, ctx).await,
     }
 }

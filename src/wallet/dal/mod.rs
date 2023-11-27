@@ -110,6 +110,18 @@ impl WalletDB {
         Ok(removed)
     }
 
+    pub async fn resolve_utxo(
+        &self,
+        tx_hash: &[u8],
+        txo_index: i32,
+    ) -> Result<Option<utxo::Model>, DbErr> {
+        Utxo::find()
+            .filter(utxo::Column::TxHash.eq(tx_hash))
+            .filter(utxo::Column::TxoIndex.eq(txo_index))
+            .one(&self.conn)
+            .await
+    }
+
     pub fn paginate_utxos(
         &self,
         order: Order,
