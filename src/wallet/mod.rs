@@ -10,6 +10,7 @@ mod detach;
 mod history;
 mod info;
 mod list;
+mod select;
 mod update;
 mod utxos;
 
@@ -39,6 +40,8 @@ enum Commands {
     History(history::Args),
     /// list current utxos of a wallet
     Utxos(utxos::Args),
+    /// list current utxos of a wallet
+    Select(select::Args),
     /// show wallet balance
     Balance(balance::Args),
 }
@@ -60,6 +63,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::Detach(args) => detach::run(args, ctx).await,
         Commands::History(args) => history::run(args).await,
         Commands::Utxos(args) => utxos::run(args, ctx).await,
+        Commands::Select(args) => select::run(args, ctx).await,
         Commands::Balance(args) => balance::run(args, ctx).await,
     }
 }
