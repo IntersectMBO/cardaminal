@@ -2244,7 +2244,7 @@ checksum = "c1b04fb49957986fdce4d6ee7a65027d55d4b6d2265e5848bbb507b58ccfdb6f"
 [[package]]
 name = "pallas"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "pallas-addresses",
  "pallas-applying",
@@ -2262,7 +2262,7 @@ dependencies = [
 [[package]]
 name = "pallas-addresses"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "base58",
  "bech32 0.9.1",
@@ -2277,7 +2277,7 @@ dependencies = [
 [[package]]
 name = "pallas-applying"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "pallas-addresses",
  "pallas-codec",
@@ -2290,7 +2290,7 @@ dependencies = [
 [[package]]
 name = "pallas-codec"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "hex",
  "minicbor",
@@ -2301,7 +2301,7 @@ dependencies = [
 [[package]]
 name = "pallas-configs"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "base64 0.21.4",
  "hex",
@@ -2315,7 +2315,7 @@ dependencies = [
 [[package]]
 name = "pallas-crypto"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "cryptoxide",
  "hex",
@@ -2328,7 +2328,7 @@ dependencies = [
 [[package]]
 name = "pallas-network"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "byteorder",
  "hex",
@@ -2343,7 +2343,7 @@ dependencies = [
 [[package]]
 name = "pallas-primitives"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "base58",
  "bech32 0.9.1",
@@ -2358,7 +2358,7 @@ dependencies = [
 [[package]]
 name = "pallas-rolldb"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "async-stream",
  "bincode",
@@ -2375,7 +2375,7 @@ dependencies = [
 [[package]]
 name = "pallas-traverse"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "hex",
  "pallas-addresses",
@@ -2389,7 +2389,7 @@ dependencies = [
 [[package]]
 name = "pallas-txbuilder"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "hex",
  "pallas-addresses",
@@ -2405,7 +2405,7 @@ dependencies = [
 [[package]]
 name = "pallas-utxorpc"
 version = "0.20.0"
-source = "git+https://github.com/txpipe/pallas.git?rev=18253840ef9003c05e0482b1bbd0727ad26f831c#18253840ef9003c05e0482b1bbd0727ad26f831c"
+source = "git+https://github.com/txpipe/pallas.git?rev=dd1599365a7d80754528825f87aabbfd028b845f#dd1599365a7d80754528825f87aabbfd028b845f"
 dependencies = [
  "pallas-codec",
  "pallas-primitives",

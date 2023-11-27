@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 # pallas = "0.19.1"
 # pallas = { path = "../../pallas/pallas", features = ["unstable"] }
-pallas = { git = "https://github.com/txpipe/pallas.git", rev = "18253840ef9003c05e0482b1bbd0727ad26f831c", features = [
+pallas = { git = "https://github.com/txpipe/pallas.git", rev = "dd1599365a7d80754528825f87aabbfd028b845f", features = [
     "unstable",
 ] }
 
