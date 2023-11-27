@@ -10,7 +10,6 @@ use miette::{Context, IntoDiagnostic};
 use pallas::crypto::hash::Hash;
 use serde::{Deserialize, Serialize};
 
-use super::create::Args;
 use crate::utils::{deserialize_date, serialize_date, OutputFormatter};
 
 #[derive(Serialize, Deserialize)]
@@ -26,32 +25,24 @@ pub struct Chain {
     #[serde(deserialize_with = "deserialize_date")]
     pub created_on: DateTime<Local>,
 }
+
 impl Chain {
-    pub fn try_new(
+    pub fn new(
         name: String,
         magic: String,
         address_network_id: u8,
         upstream: ChainUpstream,
-        after: Option<String>,
-    ) -> miette::Result<Self> {
-        // TODO: Get cli version
-        let version = String::from("v1alpha");
-
-        let mut chain = Self {
-            version,
+        after: Option<ChainAfter>,
+    ) -> Self {
+        Self {
+            version: String::from("v1alpha"),
+            created_on: Local::now(),
             name,
             address_network_id,
             upstream,
             magic,
-            after: None,
-            created_on: Local::now(),
-        };
-
-        if let Some(after) = after {
-            chain.after = Some(after.try_into()?);
+            after,
         }
-
-        Ok(chain)
     }
 
     pub fn load_config(root_dir: &Path, name: &str) -> miette::Result<Option<Self>> {
@@ -107,22 +98,6 @@ impl Chain {
             .collect();
 
         Ok(names)
-    }
-}
-
-impl TryFrom<&Args> for Chain {
-    type Error = miette::ErrReport;
-
-    fn try_from(value: &Args) -> Result<Self, Self::Error> {
-        let chain_upstream = ChainUpstream::new(value.upstream.clone());
-
-        Self::try_new(
-            value.name.clone(),
-            value.magic.clone(),
-            value.address_network_id,
-            chain_upstream,
-            value.after.clone(),
-        )
     }
 }
 
