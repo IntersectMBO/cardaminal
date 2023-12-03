@@ -60,7 +60,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .await
         .into_diagnostic()?;
 
-    let mut start = 0;
+    let mut start;
 
     if points.is_empty() {
         let point = peer_client

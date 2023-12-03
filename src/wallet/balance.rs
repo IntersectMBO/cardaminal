@@ -2,10 +2,7 @@ use std::collections::HashMap;
 
 use clap::Parser;
 use miette::{Context, IntoDiagnostic};
-use pallas::{
-    crypto::hash::Hash,
-    ledger::traverse::{Era, MultiEraOutput},
-};
+use pallas::ledger::traverse::{Era, MultiEraOutput};
 use sea_orm::Order;
 use tracing::instrument;
 
