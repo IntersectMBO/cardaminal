@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 
-wallet="personal"
-to_address=$1
-to_transfer=$2
+wallet=$1
+to_address=$2
+to_transfer=$3
 
 # start a new tx from scratch
 txid=$(cardaminal tx create $wallet)
