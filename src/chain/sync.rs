@@ -22,9 +22,9 @@ pub struct Args {
     name: String,
 }
 
-fn update_progress(span: &Span, slot: u64, tip: &Tip) {
-    span.pb_set_position(slot);
-    span.pb_set_length(tip.0.slot_or_default());
+fn update_progress(span: &Span, start: u64, slot: u64, tip: &Tip) {
+    span.pb_set_position(slot - start);
+    span.pb_set_length(tip.0.slot_or_default() - start);
 }
 
 #[instrument("sync", skip_all, fields(name=args.name))]
@@ -60,25 +60,31 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .await
         .into_diagnostic()?;
 
+    let mut start = 0;
+
     if points.is_empty() {
-        peer_client
+        let point = peer_client
             .chainsync()
             .intersect_origin()
             .await
             .into_diagnostic()?;
+
+        start = point.slot_or_default();
     } else {
-        peer_client
+        let (point, _) = peer_client
             .chainsync()
             .find_intersect(points)
             .await
             .into_diagnostic()?;
+
+        start = point.unwrap_or(Point::Origin).slot_or_default();
     }
 
     let span = info_span!("chain-sync");
-    span.pb_set_style(&ProgressStyle::default_bar());
+
     span.pb_set_style(
         &ProgressStyle::with_template(
-            "{spinner:.white} [{elapsed_precise}] [{wide_bar:.white/white}] {pos}/{len}",
+            "{spinner:.white} [{elapsed_precise}] [{bar:.white/white}] {pos}/{len} [ETA: {eta}]",
         )
         .unwrap(),
     );
@@ -118,7 +124,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
                 info!(last_slot = slot, "new blocks downloaded");
 
-                update_progress(&span, slot, &tip);
+                update_progress(&span, start, slot, &tip);
             }
             NextResponse::RollBackward(point, tip) => {
                 match point {
@@ -127,9 +133,11 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
                             .into_diagnostic()
                             .context("error saving block to db")?;
 
+                        start = 0;
+
                         info!("rolled back to origin");
 
-                        update_progress(&span, 0, &tip);
+                        update_progress(&span, start, 0, &tip);
                     }
                     Point::Specific(slot, _hash) => {
                         //let hash = Hash::<32>::from(&hash[0..8]);
@@ -137,9 +145,11 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
                             .into_diagnostic()
                             .context("error saving block to db")?;
 
+                        start = start.min(slot);
+
                         warn!(slot, "rolled back to slot");
 
-                        update_progress(&span, slot, &tip);
+                        update_progress(&span, start, slot, &tip);
                     }
                 }
             }
