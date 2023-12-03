@@ -2,8 +2,8 @@ use clap::Parser;
 use miette::IntoDiagnostic;
 use tracing::instrument;
 
-use super::model::staging::StagingTransaction;
 use crate::wallet::{config::Wallet, dal::WalletDB};
+use pallas::txbuilder::StagingTransaction;
 
 #[derive(Parser)]
 pub struct Args {

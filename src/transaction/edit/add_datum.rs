@@ -1,14 +1,8 @@
-use std::{collections::HashMap, fs, path::PathBuf};
+use std::{fs, path::PathBuf};
 
 use clap::Parser;
 use miette::{bail, Context, IntoDiagnostic};
-use pallas::ledger::{
-    primitives::{babbage::PlutusData, Fragment},
-    traverse::ComputeHash,
-};
 use tracing::instrument;
-
-use crate::transaction::model::Bytes32;
 
 use super::common::with_staging_tx;
 
@@ -30,29 +24,12 @@ pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()>
             .context("parsing datum hex to bytes")?
     } else if let Some(path) = args.file {
         if !path.exists() {
-            bail!("datum file path not exist")
+            bail!("datum file path doesn't exist")
         }
         fs::read(path).into_diagnostic()?
     } else {
         bail!("hex or file path is required");
     };
 
-    let plutus_datum = PlutusData::decode_fragment(&datum_bytes)
-        .map_err(|e| miette::ErrReport::msg(e.to_string()))
-        .context("datum malformed")?;
-
-    let datum_hash: Bytes32 = plutus_datum.compute_hash().to_vec().try_into()?;
-
-    with_staging_tx(ctx, move |mut tx| {
-        if let Some(datums) = tx.datums.as_mut() {
-            datums.insert(datum_hash, datum_bytes.into());
-        } else {
-            let mut datums = HashMap::new();
-            datums.insert(datum_hash, datum_bytes.into());
-            tx.datums = Some(datums)
-        }
-
-        Ok(tx)
-    })
-    .await
+    with_staging_tx(ctx, move |tx| Ok(tx.datum(datum_bytes))).await
 }

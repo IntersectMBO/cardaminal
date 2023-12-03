@@ -1,15 +1,12 @@
 use clap::Parser;
 use miette::{bail, IntoDiagnostic};
-use pallas::ledger::traverse::wellknown::GenesisValues;
 use tracing::{info, instrument};
 
-use crate::{
-    chain::config::Chain,
-    transaction::model::staging::StagingTransaction,
-    wallet::{
-        config::Wallet,
-        dal::{entities::transaction::Status, WalletDB},
-    },
+use pallas::txbuilder::{BuildBabbage, StagingTransaction};
+
+use crate::wallet::{
+    config::Wallet,
+    dal::{entities::transaction::Status, WalletDB},
 };
 
 #[derive(Parser)]
@@ -45,21 +42,8 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
     // TODO: `build` will take protocol parameters from wallet db for validated tx building
 
-    let chain_magic: u64 = if let Some(chain_name) = wallet.chain {
-        Chain::load_config(&ctx.dirs.root_dir, &chain_name)?
-            .ok_or(miette::miette!("chain doesn't exist"))?
-            .magic
-            .parse()
-            .into_diagnostic()?
-    } else {
-        bail!("wallet must be attached to chain")
-    };
-
-    let chain_genesis = GenesisValues::from_magic(chain_magic)
-        .ok_or(miette::miette!("unrecognised chain magic"))?;
-
     let built_tx = tx
-        .build(chain_genesis)
+        .build_babbage_raw()
         .map_err(|e| miette::miette!("tx build failed: {e:?}"))?;
 
     record.status = Status::Built;

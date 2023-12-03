@@ -10,7 +10,6 @@ mod edit;
 mod export;
 mod inspect;
 mod list;
-mod model;
 mod sign;
 mod submit;
 

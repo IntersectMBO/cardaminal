@@ -8,10 +8,5 @@ pub struct Args {}
 
 #[instrument("clear ttl", skip_all)]
 pub async fn run(_args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    with_staging_tx(ctx, move |mut tx| {
-        tx.invalid_from_slot = None;
-
-        Ok(tx)
-    })
-    .await
+    with_staging_tx(ctx, move |tx| Ok(tx.clear_invalid_from_slot())).await
 }

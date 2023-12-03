@@ -2,12 +2,10 @@ use std::{fs, io::Write, path::PathBuf};
 
 use clap::Parser;
 use miette::IntoDiagnostic;
+use pallas::txbuilder::StagingTransaction;
 use tracing::instrument;
 
-use crate::{
-    transaction::model::staging::StagingTransaction,
-    wallet::{config::Wallet, dal::WalletDB},
-};
+use crate::wallet::{config::Wallet, dal::WalletDB};
 
 #[derive(Parser)]
 pub struct Args {

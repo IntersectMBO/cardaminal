@@ -1,8 +1,9 @@
 use clap::Parser;
-use miette::{bail, Context};
+use miette::{miette, Context, IntoDiagnostic, bail};
+use pallas::txbuilder::Input;
 use tracing::instrument;
 
-use crate::transaction::{edit::common::with_staging_tx, model::staging::Input};
+use crate::transaction::edit::common::with_staging_tx;
 
 #[derive(Parser)]
 pub struct Args {
@@ -12,20 +13,22 @@ pub struct Args {
 
 #[instrument("add input", skip_all, fields(args))]
 pub async fn run(args: Args, ctx: &super::EditContext<'_>) -> miette::Result<()> {
-    let utxo: Input = args.utxo.parse().context("parsing utxo hash")?;
+    let mut parts = args.utxo.split('#').collect::<Vec<_>>();
 
-    with_staging_tx(ctx, move |mut tx| {
-        let mut inputs = tx.inputs.unwrap_or_default();
+    if parts.len() != 2 {
+        bail!("invalid utxo string");
+    }
 
-        if inputs.iter().any(|i| i.eq(&utxo)) {
-            bail!("input already added")
-        }
+    let utxo_hash: [u8; 32] = hex::decode(parts.remove(0).to_owned())
+        .into_diagnostic()
+        .context("parsing datum hex to bytes")?
+        .try_into()
+        .map_err(|_| miette!("utxo hash incorrect length"))?;
 
-        inputs.push(utxo);
+    let utxo_idx = parts.remove(0).parse().into_diagnostic()?;
 
-        tx.inputs = Some(inputs);
-
-        Ok(tx)
+    with_staging_tx(ctx, move |tx| {
+        Ok(tx.input(Input::new(utxo_hash.into(), utxo_idx)))
     })
     .await
 }

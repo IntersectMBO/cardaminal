@@ -1,10 +1,8 @@
 use miette::IntoDiagnostic;
+use pallas::txbuilder::StagingTransaction;
 use tracing::info;
 
-use crate::{
-    transaction::model::staging::StagingTransaction,
-    wallet::{config::Wallet, dal::WalletDB},
-};
+use crate::wallet::{config::Wallet, dal::WalletDB};
 
 pub async fn with_staging_tx<F>(ctx: &super::EditContext<'_>, op: F) -> miette::Result<()>
 where

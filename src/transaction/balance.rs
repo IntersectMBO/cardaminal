@@ -2,11 +2,9 @@ use clap::Parser;
 use miette::{bail, Context, IntoDiagnostic};
 use pallas::ledger::traverse::Era;
 use tracing::instrument;
+use pallas::txbuilder::StagingTransaction;
 
-use crate::{
-    transaction::model::staging::StagingTransaction,
-    wallet::{config::Wallet, dal::WalletDB},
-};
+use crate::wallet::{config::Wallet, dal::{WalletDB, entities::transaction::Status}};
 
 #[derive(Parser)]
 pub struct Args {
@@ -37,6 +35,10 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .into_diagnostic()?
         .ok_or(miette::miette!("transaction doesn't exist"))?;
 
+    if record.status != Status::Staging {
+        bail!("balance can only be called during building")
+    }
+
     let tx: StagingTransaction = serde_json::from_slice(&record.tx_json).into_diagnostic()?;
 
     let total_inputs = compute_total_input(&tx, &wallet_db).await?;
@@ -60,7 +62,7 @@ async fn compute_total_input(tx: &StagingTransaction, wallet: &WalletDB) -> miet
     if let Some(inputs) = &tx.inputs {
         for input in inputs.iter() {
             let resolved = wallet
-                .resolve_utxo(&input.tx_hash.0, input.tx_index as i32)
+                .resolve_utxo(&input.tx_hash.0, input.txo_index as i32)
                 .await
                 .into_diagnostic()
                 .context("resolving input")?;
