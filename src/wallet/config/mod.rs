@@ -262,11 +262,8 @@ pub struct BalanceView {
 }
 
 impl BalanceView {
-    pub fn new(lovelace: u64) -> Self {
-        Self {
-            lovelace,
-            tokens: Vec::default(),
-        }
+    pub fn new(lovelace: u64, tokens: Vec<(String, u64)>) -> Self {
+        Self { lovelace, tokens }
     }
 }
 
@@ -277,6 +274,10 @@ impl OutputFormatter for BalanceView {
         table.set_header(vec!["token", "amount"]);
 
         table.add_row(vec!["lovelace".to_string(), self.lovelace.to_string()]);
+
+        for (token, amount) in &self.tokens {
+            table.add_row(vec![token, &amount.to_string()]);
+        }
 
         println!("{table}");
     }

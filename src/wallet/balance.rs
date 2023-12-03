@@ -42,8 +42,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         .into_diagnostic()?;
 
     let mut lovelace: u64 = 0;
-
-    let mut _tokens: HashMap<Hash<28>, HashMap<&[u8], u64>> = HashMap::new();
+    let mut tokens: HashMap<String, u64> = HashMap::default();
 
     for utxo in utxos.iter() {
         let era = Era::try_from(utxo.era)
@@ -52,9 +51,24 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
         let output = MultiEraOutput::decode(era, &utxo.cbor).into_diagnostic()?;
         lovelace += output.lovelace_amount();
+
+        for multi in output.non_ada_assets() {
+            for asset in multi.assets() {
+                let policy = hex::encode(multi.policy());
+
+                let name = asset
+                    .to_ascii_name()
+                    .unwrap_or_else(|| hex::encode(asset.name()));
+
+                let key = format!("{}:{}", policy, name);
+                let value = asset.output_coin().unwrap_or_default();
+
+                tokens.insert(key, value);
+            }
+        }
     }
 
-    let balance = BalanceView::new(lovelace);
+    let balance = BalanceView::new(lovelace, tokens.into_iter().collect());
 
     match ctx.output_format {
         OutputFormat::Json => balance.to_json(),
