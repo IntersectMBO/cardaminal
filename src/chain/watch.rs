@@ -2,7 +2,7 @@ use clap::Parser;
 use indicatif::ProgressStyle;
 use miette::{Context, IntoDiagnostic};
 use pallas::{ledger::traverse::MultiEraBlock, network::miniprotocols::chainsync::Tip};
-use tracing::{info, info_span, instrument, warn, Span};
+use tracing::{info, info_span, instrument, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
 use crate::chain::{config::Chain, upstream::Upstream};
