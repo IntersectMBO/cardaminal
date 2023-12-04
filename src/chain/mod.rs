@@ -9,6 +9,8 @@ mod dump;
 mod info;
 mod list;
 mod sync;
+mod upstream;
+mod watch;
 
 #[derive(Parser)]
 pub struct Args {
@@ -28,6 +30,8 @@ enum Commands {
     Delete(delete::Args),
     /// Sync a chain to latest point
     Sync(sync::Args),
+    /// Watch the chain for specific data
+    Watch(watch::Args),
     /// Dump data from the chain
     Dump(dump::Args),
     /// Show the content of a block
@@ -47,6 +51,10 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
         Commands::Sync(args) => {
             crate::with_tracing();
             sync::run(args, ctx).await
+        }
+        Commands::Watch(args) => {
+            crate::with_tracing();
+            watch::run(args, ctx).await
         }
         Commands::Dump(args) => dump::run(args, ctx).await,
         Commands::Block(args) => block::run(args, ctx).await,
