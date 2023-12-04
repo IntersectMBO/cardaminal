@@ -1,6 +1,7 @@
 use clap::Parser;
 use indicatif::ProgressStyle;
-use pallas::network::miniprotocols::chainsync::Tip;
+use miette::{Context, IntoDiagnostic};
+use pallas::{ledger::traverse::MultiEraBlock, network::miniprotocols::chainsync::Tip};
 use tracing::{info, info_span, instrument, warn, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
@@ -8,8 +9,12 @@ use crate::chain::{config::Chain, upstream::Upstream};
 
 #[derive(Parser)]
 pub struct Args {
-    /// Name of the chain to synchronize
+    /// Name of the chain to watch
     name: String,
+
+    /// Watch until tx hash is found
+    #[arg(long)]
+    tx_hash: Option<String>,
 }
 
 fn update_progress(span: &Span, start: u64, slot: Option<u64>, tip: &Option<Tip>) {
@@ -22,9 +27,9 @@ fn update_progress(span: &Span, start: u64, slot: Option<u64>, tip: &Option<Tip>
     }
 }
 
-#[instrument("sync", skip_all, fields(name=args.name))]
+#[instrument("watch", skip_all, fields(name=args.name))]
 pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
-    info!(chain = args.name, "updating");
+    info!(chain = args.name, "watching");
 
     let chain = Chain::load_config(&ctx.dirs.root_dir, &args.name)?
         .ok_or(miette::miette!("chain doesn't exist"))?;
@@ -36,15 +41,12 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let span = info_span!("chain-sync");
 
     span.pb_set_style(
-        &ProgressStyle::with_template(
-            "{spinner:.white} [{elapsed_precise}] [{bar:.white/white}] {pos}/{len} [ETA: {eta}]",
-        )
-        .unwrap(),
+        &ProgressStyle::with_template("{spinner:.white} [{elapsed_precise}] {pos}/{len}").unwrap(),
     );
 
     let span = span.entered();
 
-    loop {
+    'main: loop {
         upstream.next_step().await?;
 
         update_progress(
@@ -54,13 +56,24 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
             &upstream.tip,
         );
 
-        if upstream.is_tip {
-            warn!("reached tip of the chain");
-            break;
+        if let Some(expected_tx_hash) = &args.tx_hash {
+            if let Some(block) = &upstream.current_block {
+                let block = MultiEraBlock::decode(&block)
+                    .into_diagnostic()
+                    .context("parsing block cbor")?;
+
+                for tx in block.txs() {
+                    let hash = tx.hash();
+                    let hash = hex::encode(hash.as_ref());
+
+                    if hash.eq(expected_tx_hash) {
+                        info!("found tx hash");
+                        break 'main;
+                    }
+                }
+            }
         }
     }
-
-    info!("chain synchronized");
 
     Ok(())
 }
