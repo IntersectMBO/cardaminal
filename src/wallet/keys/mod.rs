@@ -1,10 +1,9 @@
 use cryptoxide::chacha20poly1305::ChaCha20Poly1305;
 use cryptoxide::kdf::argon2;
-use pallas::crypto::key::ed25519;
+use pallas::crypto::key::ed25519::SecretKey;
 use pallas::ledger::traverse::ComputeHash;
 use rand::RngCore;
 
-pub type PrivateKey = [u8; 32];
 pub type PubKeyHash = [u8; 28];
 
 const ITERATIONS: u32 = 2500;
@@ -14,12 +13,12 @@ const NONCE_SIZE: usize = 12;
 const TAG_SIZE: usize = 16;
 const DATA_SIZE: usize = 32;
 
-pub fn keygen() -> (PrivateKey, PubKeyHash) {
-    let privkey = ed25519::SecretKey::new(rand::thread_rng());
+pub fn keygen() -> (SecretKey, PubKeyHash) {
+    let privkey = SecretKey::new(rand::thread_rng());
     let pubkey = privkey.public_key();
     let pubkeyhash = pubkey.compute_hash();
 
-    (privkey.into(), *pubkeyhash)
+    (privkey, *pubkeyhash)
 }
 
 // TODO: add checks/errors
@@ -67,8 +66,7 @@ pub fn encrypt_privkey(password: &String, data: [u8; 32]) -> Vec<u8> {
 }
 
 #[allow(unused)]
-pub fn decrypt_privkey(password: &String, data: Vec<u8>) -> Result<PrivateKey, ()> {
-    // TODO
+pub fn decrypt_privkey(password: &String, data: Vec<u8>) -> Result<SecretKey, ()> {
     assert_eq!(
         data.len(),
         VERSION_SIZE + SALT_SIZE + NONCE_SIZE + TAG_SIZE + DATA_SIZE
@@ -103,7 +101,7 @@ pub fn decrypt_privkey(password: &String, data: Vec<u8>) -> Result<PrivateKey, (
     let mut plaintext = [0u8; DATA_SIZE];
 
     if chacha20.decrypt(ciphertext, &mut plaintext, tag) {
-        Ok(plaintext)
+        Ok(plaintext.into())
     } else {
         Err(())
     }
@@ -119,11 +117,13 @@ mod tests {
 
         let (priv_key, _) = keys::keygen();
 
+        let priv_key: [u8; 32] = priv_key.into();
+
         let encrypted_priv_key = keys::encrypt_privkey(&password.into(), priv_key);
 
         let decrypted_privkey =
             keys::decrypt_privkey(&password.into(), encrypted_priv_key).unwrap();
 
-        assert_eq!(priv_key, decrypted_privkey)
+        assert_eq!(priv_key, Into::<[u8; 32]>::into(decrypted_privkey))
     }
 }
