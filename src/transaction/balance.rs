@@ -1,10 +1,13 @@
 use clap::Parser;
 use miette::{bail, Context, IntoDiagnostic};
 use pallas::ledger::traverse::Era;
-use tracing::instrument;
 use pallas::txbuilder::StagingTransaction;
+use tracing::instrument;
 
-use crate::wallet::{config::Wallet, dal::{WalletDB, entities::transaction::Status}};
+use crate::wallet::{
+    config::Wallet,
+    dal::{entities::transaction::Status, WalletDB},
+};
 
 #[derive(Parser)]
 pub struct Args {

@@ -81,8 +81,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     // create required tables in db
     db.migrate_up().await.into_diagnostic()?;
 
-    // TODO: generate keys using pallas
-    let (priv_key, pkh) = wallet::keys::temp_keygen();
+    let (priv_key, pkh) = wallet::keys::keygen();
 
     let encrypted_priv_key = wallet::keys::encrypt_privkey(password, priv_key);
 

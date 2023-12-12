@@ -1,7 +1,7 @@
-use cardano_multiplatform_lib as cml;
 use cryptoxide::chacha20poly1305::ChaCha20Poly1305;
 use cryptoxide::kdf::argon2;
-use cryptoxide::{blake2b::Blake2b, digest::Digest};
+use pallas::crypto::key::ed25519;
+use pallas::ledger::traverse::ComputeHash;
 use rand::RngCore;
 
 pub type PrivateKey = [u8; 32];
@@ -14,25 +14,12 @@ const NONCE_SIZE: usize = 12;
 const TAG_SIZE: usize = 16;
 const DATA_SIZE: usize = 32;
 
-// TODO: remove temp keygen, use zeroize where required
-pub fn temp_keygen() -> (PrivateKey, PubKeyHash) {
-    let mut privkey = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut privkey);
+pub fn keygen() -> (PrivateKey, PubKeyHash) {
+    let privkey = ed25519::SecretKey::new(rand::thread_rng());
+    let pubkey = privkey.public_key();
+    let pubkeyhash = pubkey.compute_hash();
 
-    // TODO: remove CML
-    let pubkey: [u8; 32] = cml::crypto::PrivateKey::from_normal_bytes(&privkey)
-        .unwrap()
-        .to_public()
-        .as_bytes()
-        .try_into()
-        .unwrap();
-
-    let mut pubkeyhash = [0u8; 28];
-    let mut context = Blake2b::new(28);
-    context.input(&pubkey);
-    context.result(&mut pubkeyhash);
-
-    (privkey, pubkeyhash)
+    (privkey.into(), *pubkeyhash)
 }
 
 // TODO: add checks/errors
@@ -130,7 +117,7 @@ mod tests {
     fn privkey_encryption_roundtrip() {
         let password = "hunter123";
 
-        let (priv_key, _) = keys::temp_keygen();
+        let (priv_key, _) = keys::keygen();
 
         let encrypted_priv_key = keys::encrypt_privkey(&password.into(), priv_key);
 

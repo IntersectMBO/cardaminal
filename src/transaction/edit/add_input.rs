@@ -1,5 +1,5 @@
 use clap::Parser;
-use miette::{miette, Context, IntoDiagnostic, bail};
+use miette::{bail, miette, Context, IntoDiagnostic};
 use pallas::txbuilder::Input;
 use tracing::instrument;
 
