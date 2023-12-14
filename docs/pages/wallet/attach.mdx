@@ -1,6 +1,10 @@
-# Attach a chain to a wallet
+import { Callout } from "nextra/components";
 
-In this section you can attach an existing chain to a wallet. The wallet and chain must already be configured
+# Attach Chain
+
+To get data from the wallet, a chain will be necessary to attach a chain into wallet.
+
+<Callout type="info"> A chain needs to be created </Callout>
 
 ## Parameters
 
@@ -15,10 +19,4 @@ Command description
 
 ```sh
 cardaminal wallet attach [wallet] [chain]
-```
-
-Below is an example of executing the command
-
-```sh
-cardaminal wallet attach my-wallet my-chain
 ```

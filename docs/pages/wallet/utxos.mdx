@@ -1,14 +1,14 @@
-# List Utxos from a wallet
+# List Utxos
 
-In this section you can list utxos paginated from a wallet.
+This command will return all utxos from the wallet.
 
 ## Parameters
 
 Below are all parameters supported to list utxos
 
 - `wallet`: wallet name existing
-- `page`: number of page to find
-- `size`: number of utxo per page
+- `page`: (default: 0) number of page to find
+- `size`: (default: 20) number of utxo per page
 
 ## Command
 
@@ -16,10 +16,4 @@ Command description
 
 ```sh
 cardaminal wallet utxos [wallet]
-```
-
-Below is an example of executing the command
-
-```sh
-cardaminal wallet utxos my-wallet
 ```
