@@ -1,0 +1,21 @@
+# Select Utxos
+
+This command will return the utxos in hexadecimal format with the index.
+
+## Parameters
+
+Parameters supported by command
+
+- `name`: wallet name existing
+- `first`: (default: False) only select first matching utxo
+- `min_lovelace`: (optional) min lovelace that utxo must hold
+- `max_lovelace`: (optional) max lovelace that utxo must hold
+- `no_native_assets`: (default: False) should not hold native assets
+
+## Command
+
+Command description
+
+```sh
+cardaminal wallet select [name] --first --min_lovelace [min_lovelace] --max_lovelace [max_lovelace] --no_native_assets
+```

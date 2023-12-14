@@ -1,8 +1,12 @@
 {
     "create": "Create",
     "list": "List",
-    "attach": "Attach",
-    "detach": "Detach",
-    "utxos": "Utxos",
+    "info": "Show Infos",
+    "address": "Show Address",
+    "attach": "Attach Chain",
+    "detach": "Detach Chain",
+    "update": "Update Data",
+    "utxos": "Show Utxos",
+    "select": "Select Utxos",
     "balance": "Balance"
 }

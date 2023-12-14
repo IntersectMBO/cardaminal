@@ -43,7 +43,7 @@ enum Commands {
     History(history::Args),
     /// list current utxos of a wallet
     Utxos(utxos::Args),
-    /// list current utxos of a wallet
+    /// select current utxos of a wallet
     Select(select::Args),
     /// show wallet balance
     Balance(balance::Args),
