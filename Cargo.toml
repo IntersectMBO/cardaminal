@@ -2,13 +2,16 @@
 name = "cardaminal"
 version = "1.0.0-beta.1"
 edition = "2021"
+license = "Apache-2.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 # pallas = "0.19.1"
 # pallas = { path = "../../pallas/pallas", features = ["unstable"] }
-pallas = { git = "https://github.com/txpipe/pallas.git", features = ["unstable"], rev = "c33060f48df6ea3a21dd46718cb9a4b57f47976c" }
+pallas = { git = "https://github.com/txpipe/pallas.git", features = [
+    "unstable",
+], rev = "c33060f48df6ea3a21dd46718cb9a4b57f47976c" }
 
 clap = { version = "4.4.3", features = ["derive", "env"] }
 inquire = "0.6.2"
