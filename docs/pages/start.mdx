@@ -1,1 +1,78 @@
-coming soon
+import { Callout, Steps } from "nextra/components";
+
+# Get started
+
+To use Cardaminal will be necessary to download a version of the project. When it is installed, Cardaminal will use the local disk to save the chains' sync and wallet configs. Follow the steps below to configure it.
+
+
+<Callout>
+  **Tip** the parameter `--help` can be used in all commands to get more info
+</Callout>
+
+<Steps>
+### Download
+It is available in github repository
+
+[Click here to download](https://github.com/txpipe/cardaminal/releases)
+
+### Chain
+
+After downloading the Cardaminal, the first step will be configuring a chain and syncing it.
+
+Mainnet example:
+
+```sh
+cardaminal chain create CHAIN_NAME relays-new.cardano-mainnet.iohk.io:3001 764824073 1
+```
+
+List of relays
+
+| Network | Host                                     | Magic     |
+| ------- | ---------------------------------------- | --------- |
+| Mainnet | relays-new.cardano-mainnet.iohk.io:3001  | 764824073 |
+| Preprod | preprod-node.world.dev.cardano.org:30000 | 1         |
+| Preview | preview-node.world.dev.cardano.org:30002 | 2         |
+
+After created it will be necessary to start the sync
+
+```sh
+cardaminal chain sync CHAIN_NAME
+```
+
+<Callout type="info"> this process can take several minutes </Callout>
+
+### Wallet
+
+With the chain created it's possible to create a wallet and attach a chain to it. A wallet needs a password because the Cardaminal will generate the private keys and cryptography. After that, it will be possible to start sync from this wallet.
+
+First, create a wallet
+
+```sh
+cardaminal wallet create WALLET_NAME --chain CHAIN_NAME -p PASSWORD
+```
+
+With the wallet created, the info about the wallet for example address is available
+
+```sh
+cardaminal wallet info WALLET_NAME
+```
+
+But the wallet is empty, it will be necessary to update the wallet. This process will use the data of the chain attached and persist on the wallet database only data from this wallet
+
+```sh
+cardaminal wallet update WALLET_NAME
+```
+
+<Callout type="info"> this process can take several minutes </Callout>
+
+
+After the wallet is updated, the command balance can be executed to get the ADA balance and assets
+
+```sh
+cardaminal wallet balance WALLET_NAME
+```
+
+</Steps>
+
+
+Each session above has some commands as examples, but with the cardaminal configured, other sections of this documentation can be explored.
