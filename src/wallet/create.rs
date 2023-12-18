@@ -2,9 +2,15 @@ use std::fs;
 
 use clap::Parser;
 use miette::{bail, IntoDiagnostic};
-use pallas::ledger::addresses::{
-    Network, ShelleyAddress, ShelleyDelegationPart, ShelleyPaymentPart,
+use pallas::{
+    crypto::key::ed25519::SecretKey,
+    ledger::{
+        addresses::{Network, ShelleyAddress, ShelleyDelegationPart, ShelleyPaymentPart},
+        traverse::ComputeHash,
+    },
+    wallet::wrapper,
 };
+use rand::rngs::OsRng;
 use tracing::{info, instrument};
 
 use crate::{chain, wallet};
@@ -81,10 +87,11 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     // create required tables in db
     db.migrate_up().await.into_diagnostic()?;
 
-    // TODO: generate keys using pallas
-    let (priv_key, pkh) = wallet::keys::temp_keygen();
+    let priv_key = SecretKey::new(OsRng);
 
-    let encrypted_priv_key = wallet::keys::encrypt_privkey(password, priv_key);
+    let pkh = priv_key.public_key().compute_hash();
+
+    let encrypted_priv_key = wrapper::encrypt_private_key(OsRng, priv_key.into(), password);
 
     let key_data = wallet::config::Keys {
         public_key_hash: hex::encode(pkh),

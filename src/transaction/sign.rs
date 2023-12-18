@@ -1,12 +1,11 @@
 use clap::Parser;
 use miette::{bail, IntoDiagnostic};
-use pallas::{crypto::key::ed25519, txbuilder::BuiltTransaction};
+use pallas::{txbuilder::BuiltTransaction, wallet::wrapper};
 use tracing::{info, instrument};
 
 use crate::wallet::{
     config::Wallet,
     dal::{entities::transaction::Status, WalletDB},
-    keys::decrypt_privkey,
 };
 
 pub fn gather_inputs(args: &mut Args) -> miette::Result<()> {
@@ -68,14 +67,12 @@ pub async fn run(mut args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let mut built_tx: BuiltTransaction =
         serde_json::from_slice(&record.tx_json).into_diagnostic()?;
 
-    let privkey = decrypt_privkey(
+    let privkey = wrapper::decrypt_private_key(
         password,
         hex::decode(wallet.keys.private_encrypted)
             .map_err(|_| miette::miette!("malformed encrypted private key"))?,
     )
     .map_err(|_| miette::miette!("could not decrypt private key"))?;
-
-    let privkey = ed25519::SecretKey::from(privkey);
 
     built_tx = built_tx.sign(privkey).into_diagnostic()?;
 

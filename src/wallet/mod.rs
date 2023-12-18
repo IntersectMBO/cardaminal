@@ -15,8 +15,6 @@ mod select;
 mod update;
 mod utxos;
 
-pub mod keys;
-
 #[derive(Parser)]
 pub struct Args {
     #[command(subcommand)]
