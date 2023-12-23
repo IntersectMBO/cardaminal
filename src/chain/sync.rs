@@ -45,7 +45,7 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
     let span = span.entered();
 
     loop {
-        upstream.next_step().await?;
+        upstream.next_step(|_| {}).await?;
 
         update_progress(
             &span,

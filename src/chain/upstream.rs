@@ -1,10 +1,10 @@
 use miette::{Context, IntoDiagnostic};
 use pallas::{
-    ledger::traverse::MultiEraHeader,
+    ledger::traverse::{MultiEraBlock, MultiEraHeader},
     network::{
         facades::PeerClient,
         miniprotocols::{
-            chainsync::{NextResponse, Tip},
+            chainsync::{NextResponse, RollbackBuffer, Tip},
             Point,
         },
     },
@@ -14,13 +14,15 @@ use tracing::{info, warn};
 
 use super::config::Chain;
 
+const FETCH_BATCH_SIZE: usize = 10;
+
 pub struct Upstream {
     peer_client: PeerClient,
     db: chain::Store,
+    buffer: pallas::network::miniprotocols::chainsync::RollbackBuffer,
 
     pub start_slot: u64,
     pub current_slot: Option<u64>,
-    pub current_block: Option<Vec<u8>>,
     pub tip: Option<Tip>,
     pub is_tip: bool,
 }
@@ -75,9 +77,9 @@ impl Upstream {
         let out = Self {
             peer_client,
             db,
+            buffer: RollbackBuffer::new(),
             start_slot,
             current_slot: None,
-            current_block: None,
             tip: None,
             is_tip: false,
         };
@@ -85,7 +87,46 @@ impl Upstream {
         Ok(out)
     }
 
-    pub async fn next_step(&mut self) -> miette::Result<()> {
+    async fn fetch_blocks<B>(&mut self, block_inspector: B) -> miette::Result<()>
+    where
+        B: Fn(&MultiEraBlock) -> (),
+    {
+        let oldest = self.buffer.oldest().unwrap();
+        let latest = self.buffer.latest().unwrap();
+
+        let blocks = self
+            .peer_client
+            .blockfetch()
+            .fetch_range((oldest.clone(), latest.clone()))
+            .await
+            .into_diagnostic()
+            .context("error fetching block from upstream peer")?;
+
+        for cbor in blocks {
+            let block = MultiEraBlock::decode(&cbor)
+                .into_diagnostic()
+                .context("decoding block cbor")?;
+
+            self.db
+                .roll_forward(block.slot(), block.hash(), cbor.clone())
+                .into_diagnostic()
+                .context("error saving block to db")?;
+
+            block_inspector(&block);
+        }
+
+        info!(
+            oldest = oldest.slot_or_default(),
+            latest = latest.slot_or_default(),
+            "downloaded block range"
+        );
+
+        self.buffer = RollbackBuffer::new();
+
+        Ok(())
+    }
+
+    pub async fn roll_chain(&mut self) -> miette::Result<()> {
         let response = self
             .peer_client
             .chainsync()
@@ -106,25 +147,13 @@ impl Upstream {
                 let slot = header.slot();
                 let hash = header.hash();
 
-                let block = self
-                    .peer_client
-                    .blockfetch()
-                    .fetch_single(Point::Specific(slot, hash.to_vec()))
-                    .await
-                    .into_diagnostic()
-                    .context("error fetching block from upstream peer")?;
-
-                self.db
-                    .roll_forward(header.slot(), header.hash(), block.clone())
-                    .into_diagnostic()
-                    .context("error saving block to db")?;
-
+                self.buffer
+                    .roll_forward(Point::Specific(slot, hash.to_vec()));
                 self.is_tip = false;
                 self.tip = Some(tip);
                 self.current_slot = Some(slot);
-                self.current_block = Some(block);
 
-                info!(last_slot = slot, "new blocks downloaded");
+                info!(slot, "chain roll forward");
             }
             NextResponse::RollBackward(point, tip) => {
                 match point {
@@ -134,39 +163,49 @@ impl Upstream {
                             .into_diagnostic()
                             .context("error saving block to db")?;
 
+                        self.buffer = RollbackBuffer::new();
                         self.start_slot = 0;
                         self.is_tip = false;
                         self.tip = Some(tip);
                         self.current_slot = None;
-                        self.current_block = None;
 
-                        info!("rolled back to origin");
+                        info!("chain rolled back to origin");
                     }
-                    Point::Specific(slot, _hash) => {
+                    Point::Specific(slot, hash) => {
                         //let hash = Hash::<32>::from(&hash[0..8]);
                         self.db
                             .roll_back(slot)
                             .into_diagnostic()
                             .context("error saving block to db")?;
 
+                        self.buffer.roll_back(&Point::Specific(slot, hash));
                         self.start_slot = self.start_slot.min(slot);
                         self.is_tip = false;
                         self.tip = Some(tip);
                         self.current_slot = Some(slot);
-                        self.current_block = None;
 
-                        warn!(slot, "rolled back to slot");
+                        warn!(slot, "chain rolled back");
                     }
                 }
             }
             NextResponse::Await => {
                 self.is_tip = true;
-                self.current_block = None;
 
                 warn!("reached tip of the chain");
             }
         };
 
         Ok(())
+    }
+
+    pub async fn next_step<B>(&mut self, block_inspector: B) -> miette::Result<()>
+    where
+        B: Fn(&MultiEraBlock) -> (),
+    {
+        if self.buffer.size() < FETCH_BATCH_SIZE {
+            self.roll_chain().await
+        } else {
+            self.fetch_blocks(block_inspector).await
+        }
     }
 }

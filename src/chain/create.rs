@@ -96,5 +96,7 @@ async fn find_tip(upstream: &str, magic: &str) -> miette::Result<ChainAfter> {
 
     info!(slot=after.slot, hash=%after.hash, "found chain tip");
 
+    peer_client.abort().await;
+
     Ok(after)
 }
