@@ -8,10 +8,8 @@ license = "Apache-2.0"
 
 [dependencies]
 # pallas = "0.19.1"
-# pallas = { path = "../../pallas/pallas", features = ["unstable"] }
-pallas = { git = "https://github.com/txpipe/pallas.git", features = [
-    "unstable",
-], rev = "c33060f48df6ea3a21dd46718cb9a4b57f47976c" }
+# pallas = { path = "../pallas/pallas", features = ["unstable"] }
+pallas = { git = "https://github.com/txpipe/pallas.git", features = ["unstable"] }
 
 clap = { version = "4.4.3", features = ["derive", "env"] }
 inquire = "0.6.2"

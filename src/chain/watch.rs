@@ -1,7 +1,8 @@
+use std::sync::atomic::AtomicBool;
+
 use clap::Parser;
 use indicatif::ProgressStyle;
-use miette::{Context, IntoDiagnostic};
-use pallas::{ledger::traverse::MultiEraBlock, network::miniprotocols::chainsync::Tip};
+use pallas::network::miniprotocols::chainsync::Tip;
 use tracing::{info, info_span, instrument, Span};
 use tracing_indicatif::span_ext::IndicatifSpanExt;
 
@@ -46,8 +47,24 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
 
     let span = span.entered();
 
-    'main: loop {
-        upstream.next_step().await?;
+    let match_flag = AtomicBool::new(false);
+
+    loop {
+        upstream
+            .next_step(|block| {
+                if let Some(expected_tx_hash) = &args.tx_hash {
+                    for tx in block.txs() {
+                        let hash = tx.hash();
+                        let hash = hex::encode(hash.as_ref());
+
+                        if hash.eq(expected_tx_hash) {
+                            info!("found tx hash");
+                            match_flag.store(true, std::sync::atomic::Ordering::Relaxed);
+                        }
+                    }
+                }
+            })
+            .await?;
 
         update_progress(
             &span,
@@ -56,22 +73,8 @@ pub async fn run(args: Args, ctx: &crate::Context) -> miette::Result<()> {
             &upstream.tip,
         );
 
-        if let Some(expected_tx_hash) = &args.tx_hash {
-            if let Some(block) = &upstream.current_block {
-                let block = MultiEraBlock::decode(&block)
-                    .into_diagnostic()
-                    .context("parsing block cbor")?;
-
-                for tx in block.txs() {
-                    let hash = tx.hash();
-                    let hash = hex::encode(hash.as_ref());
-
-                    if hash.eq(expected_tx_hash) {
-                        info!("found tx hash");
-                        break 'main;
-                    }
-                }
-            }
+        if match_flag.load(std::sync::atomic::Ordering::Relaxed) == true {
+            break;
         }
     }
 
