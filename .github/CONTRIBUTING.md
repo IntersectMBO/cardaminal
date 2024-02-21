@@ -26,11 +26,12 @@ To get started with contributing to Cardaminal, follow these steps:
 
 1. Fork the repository on GitHub.
 2. Clone the forked repository to your local machine with `git clone https://github.com/IntersectMBO/cardaminal`.
-3. Navigate to the cloned directory and run `cargo build` to compile the project.
-4. Run `cargo run` to execute the project.
-5. After making your changes, run `cargo test` to ensure all tests pass.
-6. If all tests pass, commit your changes and push your branch to your fork.
-7. Finally, create a pull request in the Cardaminal repository.
+3. Install a rust toolchain and dependencies, or install [nix](https://nixos.org/) and use `nix build` / `nix develop`.
+4. Navigate to the cloned directory and run `cargo build` to compile the project.
+5. Run `cargo run` to execute the project.
+6. After making your changes, run `cargo test` to ensure all tests pass.
+7. If all tests pass, commit your changes and push your branch to your fork.
+8. Finally, create a pull request in the Cardaminal repository.
 
 ## Pull Request Process
 
